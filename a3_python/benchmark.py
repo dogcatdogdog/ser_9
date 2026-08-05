@@ -12,23 +12,10 @@ import os
 import time
 from .route import GeoPoint, Target, DroneSpec
 from .solver import plan_multistop
-from .tests.conftest import load_fixture_json, targets_from_dict
+from .tests.utils import load_fixture_json, targets_from_dict
+from .data_generator import generate_targets
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "tests", "fixtures")
-
-
-def _make_test_targets(n: int) -> list[Target]:
-    """生成 n 个测试点 (圆形分布)"""
-    import math
-    targets = []
-    for i in range(n):
-        angle = 2 * math.pi * i / n
-        targets.append(Target(
-            id=f"t{i+1}",
-            location=GeoPoint(x=100 * math.cos(angle), y=100 * math.sin(angle)),
-            demand=1.0,
-        ))
-    return targets
 
 
 def quick_smoke_test() -> dict:
@@ -52,9 +39,9 @@ def quick_smoke_test() -> dict:
     )
 
     scenarios = {
-        "5p_circle": (_make_test_targets(5), home, drone),
-        "10p_circle": (_make_test_targets(10), home, drone),
-        "20p_circle": (_make_test_targets(20), home, drone),
+        "5p_circle": (generate_targets(5, distribution="circle", scale=100.0, seed=42, demand_range=(1.0, 1.0)), home, drone),
+        "10p_circle": (generate_targets(10, distribution="circle", scale=100.0, seed=42, demand_range=(1.0, 1.0)), home, drone),
+        "20p_circle": (generate_targets(20, distribution="circle", scale=100.0, seed=42, demand_range=(1.0, 1.0)), home, drone),
     }
 
     # 加载 Solomon 场景 (用大型无人机, 因为 Solom 实例 demand 较大)

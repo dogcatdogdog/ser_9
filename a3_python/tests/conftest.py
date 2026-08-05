@@ -1,11 +1,8 @@
 """共享 fixtures — 所有测试文件可用 (pytest 自动发现)"""
 
-import json
-import os
 import pytest
 from a3_python.route import GeoPoint, Target, DroneSpec
-
-FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
+from a3_python.tests.utils import load_fixture_json, targets_from_dict
 
 
 # === 基础 fixtures ===
@@ -58,30 +55,6 @@ def drone_heavy_lift() -> DroneSpec:
         alpha=0.08,
         beta=0.002,
     )
-
-
-# === Fixture 加载 ===
-
-def load_fixture_json(filename: str) -> dict:
-    """加载 fixtures/ 目录下的 JSON 文件"""
-    path = os.path.join(FIXTURES_DIR, filename)
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def targets_from_dict(data: dict) -> tuple[GeoPoint, list[Target]]:
-    """从 fixture dict 解析 home + targets 列表"""
-    h = data["home"]
-    home = GeoPoint(x=h["x"], y=h["y"])
-    targets = [
-        Target(
-            id=t["id"],
-            location=GeoPoint(x=t["x"], y=t["y"]),
-            demand=t["demand"],
-        )
-        for t in data["targets"]
-    ]
-    return home, targets
 
 
 # === Solomon 数据集 fixtures ===

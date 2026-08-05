@@ -1,12 +1,16 @@
 """test_energy_model.py — 等效距离变换 + 载重-能耗耦合模型 单测
 
 对齐 A3_SCHEMA.md §5 单测用例设计: 用例 7, 9
+W2 新增: compute_geo_matrix + compute_equiv_matrix 单测
 """
 
 import pytest
+import numpy as np
 from a3_python.route import GeoPoint, Target, DroneSpec
 from a3_python.energy_model import (
     euclidean_distance,
+    compute_geo_matrix,
+    compute_equiv_matrix,
     compute_equiv_distance,
     compute_energy_for_segment,
     simulate_route_energy,
@@ -175,3 +179,174 @@ def test_simulate_route_low_battery_detected():
 
     assert feasible is False
     assert len(warnings) > 0
+
+
+# ====================================================================
+# W2 新增: 距离矩阵 (compute_geo_matrix)
+# ====================================================================
+
+def test_geo_matrix_3points():
+    """3 点距离矩阵: 验证 3-4-5 三角形"""
+    pts = [
+        GeoPoint(x=0.0, y=0.0),
+        GeoPoint(x=3.0, y=0.0),
+        GeoPoint(x=0.0, y=4.0),
+    ]
+    mat = compute_geo_matrix(pts)
+
+    assert mat.shape == (3, 3)
+
+    # 对角线为 0
+    assert mat[0, 0] == pytest.approx(0.0)
+    assert mat[1, 1] == pytest.approx(0.0)
+    assert mat[2, 2] == pytest.approx(0.0)
+
+    # 对称性
+    assert mat[0, 1] == pytest.approx(mat[1, 0])
+    assert mat[0, 2] == pytest.approx(mat[2, 0])
+    assert mat[1, 2] == pytest.approx(mat[2, 1])
+
+    # 具体值: (0,0)→(3,0)=3, (0,0)→(0,4)=4, (3,0)→(0,4)=5
+    assert mat[0, 1] == pytest.approx(3.0)
+    assert mat[0, 2] == pytest.approx(4.0)
+    assert mat[1, 2] == pytest.approx(5.0)
+
+
+def test_geo_matrix_empty():
+    """空点集: 返回 (0,0) 矩阵"""
+    mat = compute_geo_matrix([])
+    assert mat.shape == (0, 0)
+
+
+def test_geo_matrix_single_point():
+    """单点: 返回 1×1 零矩阵"""
+    pts = [GeoPoint(x=5.0, y=3.0)]
+    mat = compute_geo_matrix(pts)
+    assert mat.shape == (1, 1)
+    assert mat[0, 0] == pytest.approx(0.0)
+
+
+def test_geo_matrix_symmetry():
+    """5 点随机测试: 验证对称性和非负性"""
+    import numpy as np
+    rng = np.random.default_rng(42)
+    pts = [GeoPoint(x=rng.uniform(-100, 100), y=rng.uniform(-100, 100))
+           for _ in range(5)]
+    mat = compute_geo_matrix(pts)
+
+    assert mat.shape == (5, 5)
+    # 对称
+    assert np.allclose(mat, mat.T)
+    # 对角线为 0
+    assert np.allclose(np.diag(mat), 0.0)
+    # 非对角 > 0 (不同点)
+    for i in range(5):
+        for j in range(5):
+            if i != j:
+                assert mat[i, j] > 0
+
+
+def test_geo_matrix_triangle_inequality():
+    """三角形不等式: d(i,j) ≤ d(i,k) + d(k,j)"""
+    pts = [
+        GeoPoint(x=0.0, y=0.0),
+        GeoPoint(x=10.0, y=0.0),
+        GeoPoint(x=5.0, y=8.0),
+    ]
+    mat = compute_geo_matrix(pts)
+
+    # 对任意 i,j,k: mat[i,j] <= mat[i,k] + mat[k,j]
+    for i in range(3):
+        for j in range(3):
+            for k in range(3):
+                if i != j and i != k and j != k:
+                    assert mat[i, j] <= mat[i, k] + mat[k, j] + 1e-10
+
+
+# ====================================================================
+# W2 新增: 等效距离矩阵 (compute_equiv_matrix)
+# ====================================================================
+
+def test_equiv_matrix_empty_load():
+    """空载: 等效矩阵 = 几何矩阵"""
+    pts = [
+        GeoPoint(x=0.0, y=0.0),
+        GeoPoint(x=3.0, y=0.0),
+        GeoPoint(x=0.0, y=4.0),
+    ]
+    geo = compute_geo_matrix(pts)
+    demands = [0.0, 0.0, 0.0]  # 全空载
+
+    equiv = compute_equiv_matrix(geo, demands, alpha=0.1, beta=0.005)
+
+    # 空载时 equiv = geo (因为 α+β×0 / α = 1)
+    assert np.allclose(equiv, geo)
+
+
+def test_equiv_matrix_with_load():
+    """有载重: 等效矩阵 ≥ 几何矩阵 (逐元素)"""
+    pts = [
+        GeoPoint(x=0.0, y=0.0),   # home
+        GeoPoint(x=10.0, y=0.0),  # c1, demand=5
+        GeoPoint(x=0.0, y=10.0),  # c2, demand=5
+    ]
+    geo = compute_geo_matrix(pts)
+    demands = [0.0, 5.0, 5.0]  # home=0, c1=5, c2=5
+    alpha = 0.1
+    beta = 0.005
+
+    equiv = compute_equiv_matrix(geo, demands, alpha, beta)
+
+    # 每个元素 equiv[i,j] >= geo[i,j]
+    for i in range(3):
+        for j in range(3):
+            if i != j:
+                assert equiv[i, j] >= geo[i, j], f"equiv[{i},{j}] < geo[{i},{j}]"
+
+
+def test_equiv_matrix_formula_accuracy():
+    """等效矩阵公式精确性: 手工验算单个元素"""
+    pts = [
+        GeoPoint(x=0.0, y=0.0),   # home, demand=0
+        GeoPoint(x=100.0, y=0.0),  # c1, demand=10
+    ]
+    geo = compute_geo_matrix(pts)  # geo[0,1] = 100.0
+    demands = [0.0, 10.0]
+    alpha = 0.1
+    beta = 0.005
+
+    equiv = compute_equiv_matrix(geo, demands, alpha, beta)
+
+    # 从 home(0) 出发: payload = total_demand - demand[0] = 10
+    # equiv = 100 × (0.1 + 0.005×10) / 0.1 = 100 × 1.5 = 150.0
+    expected_home_to_c1 = 150.0
+    assert equiv[0, 1] == pytest.approx(expected_home_to_c1)
+
+    # 从 c1(1) 出发: payload = total_demand - demand[1] = 10 - 10 = 0
+    # equiv = 100 × (0.1 + 0.005×0) / 0.1 = 100.0
+    assert equiv[1, 0] == pytest.approx(100.0)
+
+
+def test_equiv_matrix_alpha_zero_raises():
+    """alpha ≤ 0 抛出 ValueError"""
+    pts = [GeoPoint(x=0.0, y=0.0), GeoPoint(x=1.0, y=0.0)]
+    geo = compute_geo_matrix(pts)
+    with pytest.raises(ValueError):
+        compute_equiv_matrix(geo, [0.0, 1.0], alpha=0.0, beta=0.005)
+
+
+def test_equiv_matrix_higher_beta_larger_equiv():
+    """beta 越大 → 等效距离越大 (载重敏感度高)"""
+    pts = [
+        GeoPoint(x=0.0, y=0.0),
+        GeoPoint(x=100.0, y=0.0),
+    ]
+    geo = compute_geo_matrix(pts)
+    demands = [0.0, 20.0]
+    alpha = 0.1
+
+    equiv_low_beta = compute_equiv_matrix(geo.copy(), demands, alpha, beta=0.001)
+    equiv_high_beta = compute_equiv_matrix(geo.copy(), demands, alpha, beta=0.01)
+
+    # high beta 的等效距离更大
+    assert equiv_high_beta[0, 1] > equiv_low_beta[0, 1]
