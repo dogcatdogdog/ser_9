@@ -113,7 +113,9 @@ pub fn plan_multistop(
 1. 写单测 (先于实现)
 2. 实现功能 → 跑单测 (pytest -v)
 3. 跑 benchmark (python a3_python/benchmark.py)
-4. 文档更新 (如果 API 变化)
+4. 文档同步 (每次里程碑完成后必须):
+   - DEVPLAN: 勾选已完成项 + 更新底部"当前状态"和"下一步"
+   - CLAUDE.md: 如果函数签名/环境/约定变化则更新
 5. Git commit (见提交规范)
 ```
 
