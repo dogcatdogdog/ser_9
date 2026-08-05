@@ -65,22 +65,22 @@
 > **数据策略**: fixtures 用于集成测试 + benchmark (固定场景, 可复现对比);
 > data_generator 用于 W5 消融实验 (系统性变化 N/分布/demand, 画 scaling curve)。
 
-### W3 (8/15-8/21): 构造启发式
+### W3 (8/15-8/21): 构造启发式 ✅ (8/5 提前完成)
 
 **D1-D3: 最近邻构造**
-- [ ] 实现电量感知 NN: `construct_nn(targets, home, drone) -> RoutePlan`
-- [ ] 每次选择 equiv_dist 最小且满足剩余电量约束的点
-- [ ] 不可行时返回部分路线 + 不可行标记
+- [x] 实现电量感知 NN: `construct_nn(targets, home, drone) -> RoutePlan`
+- [x] 每次选择 equiv_dist 最小且满足剩余电量约束的点
+- [x] 不可行时返回部分路线 + 不可行标记
 
 **D4-D5: Savings 构造**
-- [ ] 实现 Clarke-Wright Savings 改造版
-- [ ] saving(i,j) = equiv_dist(home,i) + equiv_dist(home,j) - equiv_dist(i,j)
-- [ ] 按 saving 从大到小合并路线，每次合并检查电量可行性
+- [x] 实现 Clarke-Wright Savings 改造版
+- [x] saving(i,j) = equiv_dist(home,i) + equiv_dist(home,j) - equiv_dist(i,j)
+- [x] 按 saving 从大到小合并路线，每次合并检查电量可行性
 
 **D6-D7: 对比与选择**
-- [ ] NN vs Savings 在自建 5/10/20 点上对比 (快速迭代)
-- [ ] NN vs Savings 在 Solomon R101/C101/RC101 前 20 点上对比 (标准实例验证)
-- [ ] 选较优者作为主构造方法
+- [x] NN vs Savings 在自建 5/10/20 点上对比 (快速迭代)
+- [x] NN vs Savings 在 Solomon R101/C101/RC101 前 20 点上对比 (标准实例验证)
+- [x] 选较优者作为主构造方法
 - [ ] 单测: 验证构造解满足载重 + 电量约束
 
 ### W4 (8/22-8/28): 局部搜索
@@ -199,16 +199,25 @@
 
 ## 当前状态
 
-**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线 ✅ → W3 构造启发式 (调研先行)
+**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线 ✅ → W3 构造启发式 ✅ → W4 局部搜索 (待启动)
 **阻塞**: 无
-**下一步**: W3 构造启发式:
-  - 🔍 R3.1: 确认 Solomon-style 约束 NN 适配方案 (A3_RESEARCH_PLAN.md)
-  - 🔍 R3.2: C-W Savings 的 equiv_dist 变体 + 3 个开放问题
-  - 实现电量感知 NN: `construct_nn(targets, home, drone) -> RoutePlan`
-  - 实现 Clarke-Wright Savings 改造版
-  - NN vs Savings 对比评测
+**下一步**: W4 局部搜索:
+  - 🔍 R4.1: 2-opt 增量评估公式 (A3_RESEARCH_PLAN.md)
+  - 🔍 R4.2: Or-opt 增量评估公式
+  - 🔍 R4.3: First vs Best improvement 对比
+  - 🔍 R4.4: 2-opt 与 Or-opt 邻域组合策略
+  - 实现 2-opt + Or-opt + 增量评估
+  - 集成到 plan_multistop()
 
 **新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
+
+**W3 完成项 (8/5)**:
+  - `heuristic.py`: `construct_nn()` — N-start 电量感知 NN, O(N × n²)
+  - `heuristic.py`: `construct_savings()` — equiv_dist 改造版 C-W Savings
+  - `solver.py`: `plan_multistop()` 已集成 NN 构造
+  - **调研结论**: NN 在所有 6 个实例上优于 Savings (差距 5-29%), 选 NN 作为主构造方法
+  - **25 新 heuristic 单测** (5 正例 NN + 3 正例 SV + 3 退化 NN + 2 退化 SV + 3 边界 + 4 一致性 + 3 回归 + 2 W4 占位)
+  - 全量 88 单测通过, benchmark quick smoke 通过
 
 **W2 完成项 (8/5)**:
   - `energy_model.py`: `compute_geo_matrix()` + `compute_equiv_matrix()` (numpy 向量化)
