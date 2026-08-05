@@ -175,6 +175,22 @@ main           # 稳定版本，通过所有单测 + review
 └── ...
 ```
 
+**分支依赖规则 (线性开发, 禁止并行)**:
+
+1. **前序周未合并 → 不开始当前周**:
+   - W(n) 分支必须从包含 W(n-1) 合并结果的 main 上创建
+   - 严禁从 W(n-1) 未合并的 commit 上创建 W(n) 分支
+   - 开始 W(n) 前检查 `git log origin/main --oneline | head -5`，确认 W(n-1) 的 merge commit 存在
+
+2. **PR 提交前检查**:
+   - `git fetch origin && git merge origin/main --no-commit --no-ff` 必须无冲突
+   - 上一周 PR 未合并的, 当前 PR 不得提交 review
+   - DEVPLAN "当前状态" 必须指向已完成周的下一周
+
+3. **冲突处理**:
+   - 如果出现并行开发导致的冲突, 以后提交的 PR 负责解决
+   - 解决方法: rebase 到已包含前序 PR 的 main 上, 解决冲突后 force-push
+
 ## 测试策略
 
 ### 测试金字塔
