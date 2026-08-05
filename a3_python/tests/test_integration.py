@@ -1,9 +1,13 @@
 """集成测试 — 标准 VRP 实例上验证完整求解流程
 
-对齐 A3_SCHEMA.md §5.3: 5-8 例, Solomon + 自建场景
+对齐 A3_SCHEMA.md §5.3: Solomon + 自建场景
 
-W1-W4: 验证可行性和解结构
-W5: 加入 OR-Tools gap 断言 (用例 11/12/13)
+Solomon 数据来源: CervEdin/solomon-vrptw-benchmarks (GitHub)
+原始发布: Solomon, M. M. (1987). Operations Research, 35(2), 254-265.
+
+W1: 验证可行性 + 解结构正确
+W2: 加入 PyVRP baseline 对比 (求解同一实例, 对比总距离)
+W5: 加入 OR-Tools gap 断言 + 消融实验
 """
 
 import pytest
