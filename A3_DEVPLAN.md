@@ -199,12 +199,16 @@
 
 ## 当前状态
 
-**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线 ✅ → W3 构造启发式
+**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线 ✅ → W3 构造启发式 (调研先行)
 **阻塞**: 无
 **下一步**: W3 构造启发式:
+  - 🔍 R3.1: 确认 Solomon-style 约束 NN 适配方案 (A3_RESEARCH_PLAN.md)
+  - 🔍 R3.2: C-W Savings 的 equiv_dist 变体 + 3 个开放问题
   - 实现电量感知 NN: `construct_nn(targets, home, drone) -> RoutePlan`
   - 实现 Clarke-Wright Savings 改造版
   - NN vs Savings 对比评测
+
+**新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
 
 **W2 完成项 (8/5)**:
   - `energy_model.py`: `compute_geo_matrix()` + `compute_equiv_matrix()` (numpy 向量化)
