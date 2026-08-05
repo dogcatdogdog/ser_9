@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.venv/
+*.egg
+
+# Rust
+a3_rust/target/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Conda env (not tracked)
+env/
+env312/
+
+# Test outputs
+results/
+*.tmp
+
+# PDF text extract
+pdf_text.txt
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# Session scrap files
+pyvrp-page-*
+
+# Jupyter
+.ipynb_checkpoints/
