@@ -42,23 +42,28 @@
 
 ## W2-W5: 初稿·Python
 
-### W2 (8/8-8/14): 数据管线 + 基线
+### W2 (8/8-8/14): 数据管线 + 基线 ✅ (8/5 提前完成)
 
 **D1-D2: energy_model.py**
-- [ ] 实现 `compute_geo_matrix(locations) -> np.ndarray`
-- [ ] 实现 `compute_equiv_distance(i, j, payload, alpha, beta) -> float`
-- [ ] 实现 `simulate_route_energy(sequence, targets, home, drone) -> list[Segment]`
-- [ ] 单测: 空载 vs 满载，等效距离对比
+- [x] 实现 `compute_geo_matrix(locations) -> np.ndarray`
+- [x] 实现 `compute_equiv_distance(i, j, payload, alpha, beta) -> float`
+- [x] 实现 `simulate_route_energy(sequence, targets, home, drone) -> list[Segment]`
+- [x] 实现 `compute_equiv_matrix(geo_matrix, demands, alpha, beta) -> np.ndarray`
+- [x] 单测: 空载 vs 满载，等效距离对比 (21 例通过)
 
 **D3-D4: 基线求解 (PyVRP)**
-- [ ] 用 PyVRP 在 5/10/20 点数据集上求解（无电量约束）
-- [ ] 记录 baseline 指标（总距离、求解时间）
-- [ ] 确认 PyVRP 能稳定求解
+- [x] 用 PyVRP 在 5/10/20 点数据集上求解（无电量约束）— `a3_python/baseline.py`
+- [x] 记录 baseline 指标（总距离、求解时间）— `BaselineResult` dataclass
+- [x] 确认 PyVRP 能稳定求解 — 全部 7 个实例 feasible=True
 
-**D5-D7: 数据生成器**
-- [ ] 自建 5 点、10 点、20 点测试场景
-- [ ] 从 Solomon VRPTW 中抽取前 20 点作为标准测试集
-- [ ] 无人机参数配置表（3 种机型，不同 α/β）
+**D5-D7: 数据管线**
+- [x] Solomon VRPTW 标准测试集: R101/C101/RC101 前 20 点 (fixtures/)
+- [x] 自建手写场景: custom_5_heavy (重载) / custom_10_tight (电量紧) / custom_15_mixed (联合) (fixtures/)
+- [x] 程序化数据生成器: `a3_python/data_generator.py` (5 种分布, 为 W5 消融预建)
+- [x] 无人机参数配置表（3 种机型，不同 α/β）— `DRONE_PRESETS` in route.py
+
+> **数据策略**: fixtures 用于集成测试 + benchmark (固定场景, 可复现对比);
+> data_generator 用于 W5 消融实验 (系统性变化 N/分布/demand, 画 scaling curve)。
 
 ### W3 (8/15-8/21): 构造启发式
 
@@ -192,10 +197,17 @@
 
 ## 当前状态
 
-**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线
+**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线 ✅ → W3 构造启发式
 **阻塞**: 无
-**下一步**: energy_model.py 已实现核心公式, W2 聚焦:
-  - `compute_geo_matrix()` 批量距离矩阵 (numpy)
-  - PyVRP baseline 对比 (5/10/20 点)
-  - 数据生成器 (自建场景 + Solomon VRPTW 前 20 点)
-  - 无人机参数配置表 (3 种机型)
+**下一步**: W3 构造启发式:
+  - 实现电量感知 NN: `construct_nn(targets, home, drone) -> RoutePlan`
+  - 实现 Clarke-Wright Savings 改造版
+  - NN vs Savings 对比评测
+
+**W2 完成项 (8/5)**:
+  - `energy_model.py`: `compute_geo_matrix()` + `compute_equiv_matrix()` (numpy 向量化)
+  - `baseline.py`: PyVRP TSP 基线, 7 实例全部 feasible, `BaselineResult` + `run_baseline_suite()`
+  - `data_generator.py`: 5 种分布 (circle/random/grid/line/cluster) + fixture 导出
+  - `route.py`: `DRONE_PRESETS` — 3 种标准机型 (light/standard/heavy)
+  - `tests/utils.py`: 共享 fixture 加载工具 (解耦 conftest)
+  - 71 单测全部通过, benchmark quick smoke 通过

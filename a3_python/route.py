@@ -59,3 +59,43 @@ class RoutePlan:
     total_payload_delivered: float # 总送货量 (kg)
     feasible: bool                 # 是否满足所有约束
     warnings: list[str] = field(default_factory=list)
+
+
+# ====================================================================
+# 无人机参数配置表 — 3 种标准机型 (对齐 A3_DEVPLAN.md W2 D5-D7)
+# ====================================================================
+
+DRONE_PRESETS: dict[str, DroneSpec] = {
+    "light": DroneSpec(
+        payload_capacity=5.0,       # 5kg 载重
+        battery_capacity=1000.0,    # 1000Wh (1kWh)
+        alpha=0.15,                 # 高能耗率 (小型机效率低)
+        beta=0.01,                  # 高载重敏感 (小机身对载重敏感)
+        cruise_speed=8.0,           # 8m/s
+    ),
+    "standard": DroneSpec(
+        payload_capacity=50.0,      # 50kg 载重
+        battery_capacity=5000.0,    # 5000Wh (5kWh)
+        alpha=0.1,                  # 标准能耗率
+        beta=0.005,                 # 标准载重敏感
+        cruise_speed=10.0,          # 10m/s
+    ),
+    "heavy": DroneSpec(
+        payload_capacity=500.0,     # 500kg 载重
+        battery_capacity=100000.0,  # 100kWh
+        alpha=0.08,                 # 低能耗率 (大型机效率高)
+        beta=0.002,                 # 低载重敏感 (大机身对载重不敏感)
+        cruise_speed=12.0,          # 12m/s
+    ),
+}
+"""无人机预设配置表
+
+三种机型覆盖不同使用场景:
+  - light:    小型无人机, 适合短距离轻载配送
+  - standard: 标准配送无人机, 基准对比机型
+  - heavy:    大型无人机, 适合 Solomon 等标准 VRP 实例
+
+使用:
+    from a3_python.route import DRONE_PRESETS
+    drone = DRONE_PRESETS["standard"]
+"""

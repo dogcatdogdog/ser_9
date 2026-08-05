@@ -52,15 +52,19 @@ D:\ser_9\
 │   ├── heuristic.py             # NN 构造 + 2-opt/Or-opt 搜索
 │   ├── route.py                 # RoutePlan/Segment 数据结构
 │   ├── benchmark.py             # 评测: vs OR-Tools / PyVRP / 消融
-│   └── tests/                   # 单测 (≥10, 对齐 path-ai 范式)
+│   ├── baseline.py              # PyVRP 基线求解 (W2)
+│   ├── data_generator.py        # 测试数据生成器 (W2)
+│   └── tests/                   # 单测 (71 例)
 │       ├── conftest.py           # 共享 fixtures
-│       ├── test_energy_model.py
-│       ├── test_solver.py
-│       ├── test_heuristic.py
-│       ├── test_integration.py   # 5-8 集成测试
+│       ├── utils.py              # fixture JSON 加载/解析 (W2)
+│       ├── test_energy_model.py  # 21 例
+│       ├── test_solver.py        # 10 例
+│       ├── test_heuristic.py     # 4 例
+│       ├── test_integration.py   # 8 例
+│       ├── test_baseline.py      # 10 例 (W2)
+│       ├── test_data_generator.py # 19 例 (W2)
 │       └── fixtures/             # 标准测试数据集
 │           ├── solomon_r101_n20.json
-│           ├── custom_5_heavy.json
 │           └── custom_10_tight.json
 ├── a3_rust/                     # Rust 落地 (W6 启动)
 │   ├── Cargo.toml
