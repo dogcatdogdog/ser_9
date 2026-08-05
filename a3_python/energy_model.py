@@ -7,12 +7,86 @@
 """
 
 import math
+import numpy as np
 from .route import GeoPoint, Target, DroneSpec, Segment
 
 
 def euclidean_distance(a: GeoPoint, b: GeoPoint) -> float:
     """计算两点间的欧几里得距离 (米)"""
     return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+
+
+def compute_geo_matrix(locations: list[GeoPoint]) -> np.ndarray:
+    """批量计算所有点对间的几何距离矩阵 (N×N)
+
+    使用 numpy 向量化计算, 复杂度 O(N²) 但常数极小。
+
+    Args:
+        locations: 坐标点列表 (包含 home 在内的 N 个点)
+
+    Returns:
+        np.ndarray: N×N 距离矩阵, mat[i][j] = |locations[i] - locations[j]|
+
+    Example:
+        >>> pts = [GeoPoint(0,0), GeoPoint(3,0), GeoPoint(0,4)]
+        >>> mat = compute_geo_matrix(pts)
+        >>> mat[0, 1]  # 3.0
+        >>> mat[0, 2]  # 4.0
+        >>> mat[1, 2]  # 5.0
+    """
+    n = len(locations)
+    if n == 0:
+        return np.empty((0, 0), dtype=np.float64)
+
+    # 提取坐标数组: (N, 2)
+    coords = np.array([[p.x, p.y] for p in locations], dtype=np.float64)
+
+    # 向量化: mat[i,j] = sqrt((xi-xj)² + (yi-yj)²)
+    # diff[i,j] = coords[i] - coords[j], shape (N, N, 2)
+    diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]
+    geo_matrix = np.sqrt(np.sum(diff ** 2, axis=2))
+
+    return geo_matrix
+
+
+def compute_equiv_matrix(
+    geo_matrix: np.ndarray,
+    demands: list[float],
+    alpha: float,
+    beta: float,
+) -> np.ndarray:
+    """基于几何距离矩阵和需求量, 计算等效电量距离矩阵
+
+    等效距离 = geo_dist × (α + β × payload_before) / α
+
+    注意: 等效距离是状态依赖的 — payload_before 取决于访问顺序中
+    目标点 i 出发时的剩余载重。本函数返回以「出发时载重 = sum(demands after i)」
+    为近似的等效距离矩阵, 供构造启发式使用。
+
+    Args:
+        geo_matrix: N×N 几何距离矩阵 (第 0 行为 home, 后续为 targets)
+        demands: 各点需求量列表 (长度 N, 第 0 项为 home=0)
+        alpha: 空载能耗率 (Wh/m)
+        beta: 载重敏感系数 (Wh/m/kg)
+
+    Returns:
+        np.ndarray: N×N 等效距离矩阵
+    """
+    if alpha <= 0:
+        raise ValueError(f"alpha must be > 0, got {alpha}")
+
+    n = len(demands)
+    total_demand = sum(demands)
+    equiv = np.zeros_like(geo_matrix)
+
+    for i in range(n):
+        # 从 i 出发时的剩余载重 (不含 i 自身, 因为 i 点已投递)
+        # 近似: payload = total_demand - 已访问点的 demand
+        # 这里用 i 点之后剩余的总 demand 作为近似
+        payload = total_demand - demands[i]
+        equiv[i, :] = geo_matrix[i, :] * (alpha + beta * payload) / alpha
+
+    return equiv
 
 
 def compute_equiv_distance(
