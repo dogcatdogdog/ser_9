@@ -36,7 +36,7 @@
 - [x] 创建 `a3_python/` 目录结构 (route.py / solver.py / energy_model.py / heuristic.py / benchmark.py)
 - [x] 实现 `solver.py::plan_multistop()` — 输入验证 + 按输入顺序构造路线 + 能耗模拟
 - [x] 实现 `energy_model.py` — 几何距离 + 等效距离变换 + 路线电量模拟 (核心公式已实现)
-- [x] 24 单测 (正例/退化/边界/一致性) — 全部通过
+- [x] 24 单测 (W1 骨架时计数, 正例/退化/边界/一致性) — 全部通过
 
 ---
 
@@ -215,5 +215,5 @@
   - `baseline.py`: PyVRP TSP 基线, 7 实例全部 feasible, `BaselineResult` + `run_baseline_suite()`
   - `data_generator.py`: 5 种分布 (circle/random/grid/line/cluster) + fixture 导出
   - `route.py`: `DRONE_PRESETS` — 3 种标准机型 (light/standard/heavy)
-  - `tests/utils.py`: 共享 fixture 加载工具 (解耦 conftest)
-  - 71 单测全部通过, benchmark quick smoke 通过
+  - `fixture_loader.py`: 共享 fixture 加载工具 (从 tests/ 提取到 package 层)
+  - 67 单测全部通过 (21 energy + 9 solver + 4 heuristic + 8 integration + 6 baseline + 19 data_gen), benchmark quick smoke 通过

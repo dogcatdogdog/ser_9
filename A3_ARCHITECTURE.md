@@ -47,7 +47,7 @@
 |------|-----------|---------|
 | **目的** | 算法实验、论文、对比/消融 | 生产服务、平台集成 |
 | **依赖** | PyVRP, OR-Tools, numpy, matplotlib | 无重型依赖（手写几何） |
-| **性能要求** | 宽松（分钟级可接受） | 严格（秒级） |
+| **性能要求** | ≤20 点 < 30s (对齐 A3_REQUIREMENTS.md §6) | ≤20 点 < 1s |
 | **核心算法** | 可调 PyVRP C++ 底层 | **纯手写**（几何/图算法，对齐 path-ai 范式） |
 | **交付物** | 实验脚本 + 指标表 + 论文图表 | crate + 单测 + HTTP 服务 + DTO |
 
@@ -69,10 +69,15 @@ Input: targets[], home, battery_capacity, payload_capacity, α, β
          └──────────────┬──────────────────────┘
                         ▼
          ┌─────────────────────────────────────┐
-         │  Step 2: 构造初始解                   │
-         │  - 电量感知的最近邻                     │
-         │  - 从 home 出发，每次选 equiv_dist    │
+         │  Step 2: 构造初始解 (NN + Savings)     │
+         │  - 电量感知的最近邻 (NN):               │
+         │    从 home 出发，每次选 equiv_dist    │
          │    最小且满足剩余电量约束的未访问点       │
+         │  - Clarke-Wright Savings 改造版:       │
+         │    saving(i,j) = equiv(0,i)+equiv(0,j) │
+         │    - equiv(i,j), 按 saving 降序合并    │
+         │  - 多起点 NN (N-start): 每个点作为     │
+         │    第一个访问点各跑一次，取最优           │
          │  - 如果无可行点 → 返回 home            │
          └──────────────┬──────────────────────┘
                         ▼
@@ -122,7 +127,7 @@ axum = "0.7"        # HTTP 服务
 serde = "1"          # JSON 序列化
 serde_json = "1"
 tokio = "1"          # 异步运行时
-# 不加 geo/nalgebra — 手写 sqrt/pow，对齐 path-ai 范式
+# 不加 geo/nalgebra — 使用标准库 f64::sqrt() (IEEE 754，与 numpy 精度一致)
 # 不加 OR-Tools 绑定 — 算法全部手写
 ```
 

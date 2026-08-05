@@ -73,7 +73,8 @@ def test_plan_overload_infeasible(home, drone_default):
     assert result.feasible is False
     assert len(result.warnings) > 0
     assert any("exceeds drone capacity" in w.lower() for w in result.warnings)
-    assert result.sequence == []
+    # 不可行时仍保留请求的 sequence 供诊断 (warnings 说明了原因)
+    assert set(result.sequence) == {"c1", "c2"}
     assert result.total_geo_distance == 0.0
 
 

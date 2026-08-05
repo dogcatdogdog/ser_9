@@ -55,25 +55,30 @@ D:\ser_9\
 │   ├── benchmark.py             # 评测: vs OR-Tools / PyVRP / 消融
 │   ├── baseline.py              # PyVRP 基线求解 (W2)
 │   ├── data_generator.py        # 测试数据生成器 (W2)
-│   └── tests/                   # 单测 (71 例)
+│   ├── fixture_loader.py        # 共享 fixture 加载 (W2)
+│   └── tests/                   # 单测 (67 例)
 │       ├── conftest.py           # 共享 fixtures
-│       ├── utils.py              # fixture JSON 加载/解析 (W2)
+│       ├── utils.py              # → 委托 fixture_loader.py (向后兼容)
 │       ├── test_energy_model.py  # 21 例
-│       ├── test_solver.py        # 10 例
+│       ├── test_solver.py        # 9 例
 │       ├── test_heuristic.py     # 4 例
 │       ├── test_integration.py   # 8 例
-│       ├── test_baseline.py      # 10 例 (W2)
+│       ├── test_baseline.py      # 6 例 (W2)
 │       ├── test_data_generator.py # 19 例 (W2)
-│       └── fixtures/             # 标准测试数据集
+│       └── fixtures/             # 标准测试数据集 (6 个)
 │           ├── solomon_r101_n20.json
-│           └── custom_10_tight.json
+│           ├── solomon_c101_n20.json
+│           ├── solomon_rc101_n20.json
+│           ├── custom_5_heavy.json
+│           ├── custom_10_tight.json
+│           └── custom_15_mixed.json
 ├── a3_rust/                     # Rust 落地 (W6 启动)
 │   ├── Cargo.toml
 │   └── src/
 │       ├── main.rs              # axum HTTP server, port 9204
 │       ├── dto.rs               # MultiStopReq/RoutePlanResp
 │       ├── solver.rs            # plan_multistop() 纯函数
-│       ├── energy.rs            # 等效距离 (手写几何)
+│       ├── energy.rs            # 等效距离 (std::f64::sqrt, 不引 geo crate)
 │       └── heuristic.rs         # NN + 局部搜索
 └── docs/                        # 专利交底书 / 论文素材
     └── patent_disclosure.md     # 专利交底书 (6 章节)
@@ -215,7 +220,7 @@ main           # 稳定版本，通过所有单测 + review
            │   Benchmark   │  Solomon 全集 + OR-Tools/PyVRP/VeRyPy
            │   10+ instances│  每周跑，产出论文指标表
            ├──────────────┤
-           │  Integration  │  标准实例 (R101, 自建 5/10/20 点)
+           │  Integration  │  标准实例 (R101/C101/RC101, 自建 5/10/15 点)
            │   5-8 cases   │  验证完整流程，对比已知最优解
            ├──────────────┤
            │  Unit Tests   │  mock 数据，验证单一模块
