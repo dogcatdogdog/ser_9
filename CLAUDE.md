@@ -1,7 +1,4 @@
-# ser_9 — 无人机 AI 算法研发
-
-> 基于「算法研发计划 v3」§三/A3 · 多目标访问路线规划
-> 对标范例: path-ai（纯函数 + 单测 + HTTP 服务 + 文档四件套）
+# ser_9 — A3 · 多目标访问路线规划
 
 ## 项目概述
 
@@ -47,7 +44,6 @@ D:\ser_9\
 ├── A3_ARCHITECTURE.md           # 架构设计 (Python→Rust 双阶段)
 ├── A3_SCHEMA.md                 # 数据结构 / DTO / JSON Schema / API
 ├── A3_DEVPLAN.md                # 13 周开发计划与里程碑
-├── 算法研发计划.pdf              # 原始研发计划 v3
 ├── baseline_01_hello_pyvrp.py   # ✅ 已跑通 — PyVRP Hello World
 ├── a3_python/                   # Python 实验代码 (当前阶段)
 │   ├── __init__.py
@@ -69,7 +65,7 @@ D:\ser_9\
 │       ├── energy.rs            # 等效距离 (手写几何)
 │       └── heuristic.rs         # NN + 局部搜索
 └── docs/                        # 专利交底书 / 论文素材
-    └── patent_disclosure.md     # 按 §八.2 模板 6 章节
+    └── patent_disclosure.md     # 专利交底书 (6 章节)
 ```
 
 ## 核心函数签名
@@ -221,18 +217,17 @@ python a3_python/benchmark.py --quick
 
 ## 四个硬节点
 
-| 节点 | 周 | 交付物 | 评审重点 |
-|------|----|--------|---------|
-| 选题评审 | W1 | 选题卡 + 空函数 + ≥3 单测 | 签名 + MVP 边界 + 卖点清晰 |
-| 月1中检 | W5 | Python 跑通 + 指标表 | 能否进 Rust，跑不通则简化 |
-| 初稿 Deadline | W9 | Rust 落地 + 文档 + 交底书框架 | 初稿验收，定专利/论文去向 |
-| 定稿 | W13 | 可投递论文 / 可申报专利 | 结题 |
+| 节点 | 周 | 交付物 |
+|------|----|--------|
+| W1 骨架 | W1 | 空函数 + ≥3 单测 + 目录结构 |
+| 月1中检 | W5 | Python 跑通 + 指标表 |
+| 初稿 Deadline | W9 | Rust 落地 + 专利交底书初稿 |
+| 定稿 | W13 | 可投递论文 / 可申报专利 |
 
 ## 参考资料
 
 | 资料 | 路径/链接 |
 |------|----------|
-| 算法研发计划 v3 | `D:\ser_9\算法研发计划.pdf` |
 | A3 需求规格 | `D:\ser_9\A3_REQUIREMENTS.md` |
 | A3 架构设计 | `D:\ser_9\A3_ARCHITECTURE.md` |
 | A3 Schema 定义 | `D:\ser_9\A3_SCHEMA.md` |
@@ -241,4 +236,3 @@ python a3_python/benchmark.py --quick
 | PyVRP 论文 | Wouda et al. (2024), INFORMS J. Computing, DOI: 10.1287/ijoc.2023.0055 |
 | Solomon VRPTW | http://web.cba.neu.edu/~msolomon/problems.htm |
 | path-ai 范例 | 参照 path-ai 的 README.md + CLAUDE.md + 005 文档 |
-| 专利交底书模板 | `D:\ser_9\算法研发计划.pdf` §八.2 (6 章节: 背景/目的/方案/创新点/实施例/有益效果) |
