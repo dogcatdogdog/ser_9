@@ -44,6 +44,7 @@ D:\ser_9\
 ├── A3_ARCHITECTURE.md           # 架构设计 (Python→Rust 双阶段)
 ├── A3_SCHEMA.md                 # 数据结构 / DTO / JSON Schema / API
 ├── A3_DEVPLAN.md                # 13 周开发计划与里程碑
+├── A3_RESEARCH_PLAN.md          # 调研计划 — 每阶段调研先行，成熟方案适配
 ├── baseline_01_hello_pyvrp.py   # ✅ 已跑通 — PyVRP Hello World
 ├── a3_python/                   # Python 实验代码 (当前阶段)
 │   ├── __init__.py
@@ -117,16 +118,30 @@ pub fn plan_multistop(
 
 ## 开发流程
 
+### 调研先行 (每阶段启动前)
+
+每个算法阶段（W3 构造、W4 搜索、W5 评测、W6 Rust）启动前，先完成调研：
+
+```
+1. 文献调研 (1-2天): 找到成熟方案 ← A3_RESEARCH_PLAN.md 指定了参考文献
+2. 适配分析 (1天):  确认成熟方案如何改造到本问题（如 d → equiv_dist）
+3. 小规模验证 (1天): 用 5 点实例快速验证改造成立
+4. 正式实现 (2-3天): 写单测 → 实现 → 跑全量单测
+```
+
+**原则**: 不发明新算法，在经典 VRP 方案上做"载重-能耗耦合"改造。调研结论先写在 `A3_RESEARCH_PLAN.md` 对应 section 中，再开始编码。
+
 ### 日常开发循环
 
 ```
-1. 写单测 (先于实现)
-2. 实现功能 → 跑单测 (pytest -v)
-3. 跑 benchmark (python a3_python/benchmark.py)
-4. 文档同步 (每次里程碑完成后必须):
+1. 调研 (如果是新模块) — 见上方"调研先行"
+2. 写单测 (先于实现)
+3. 实现功能 → 跑单测 (pytest -v)
+4. 跑 benchmark (python a3_python/benchmark.py)
+5. 文档同步 (每次里程碑完成后必须):
    - DEVPLAN: 勾选已完成项 + 更新底部"当前状态"和"下一步"
    - CLAUDE.md: 如果函数签名/环境/约定变化则更新
-5. Git commit (见提交规范)
+6. Git commit (见提交规范)
 ```
 
 ### 提交规范
