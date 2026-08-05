@@ -93,6 +93,9 @@ def plan_multistop(
 
 ### 2.2 Rust 落地签名（预定义）
 
+> Rust DTO 是 Python dataclass 的 1:1 翻译: `TargetDto`、`GeoPointDto`、`DroneSpecDto`
+> 分别对应 `Target`、`GeoPoint`、`DroneSpec`，字段名和类型完全一致。
+
 ```rust
 /// 输入请求 (JSON deserialized)
 #[derive(Deserialize)]

@@ -11,11 +11,11 @@
 │                    Python (实验 / 论文)                   │
 │                                                         │
 │  ┌──────────┐  ┌───────────┐  ┌────────────────────┐   │
-│  │ Solomon  │  │  energy_  │  │  solver.py          │   │
-│  │ loader   │→│  model.py │→│  - construct_nn()    │   │
-│  │(vrplib)  │  │  - α,β   │  │  - local_search()   │   │
-│  └──────────┘  │  - equiv │  │  - plan_multistop() │   │
-│                │  _dist() │  └─────────┬───────────┘   │
+│  │ 数据管线  │  │  energy_  │  │  solver.py          │   │
+│  │(vrplib) │→│  model.py │→│  - construct_nn()    │   │
+│  │ 仅用于   │  │  - α,β   │  │  - local_search()   │   │
+│  │ 数据集加载│  │  - equiv │  │  - plan_multistop() │   │
+│  └──────────┘  │  _dist() │  └─────────┬───────────┘   │
 │                └───────────┘            │               │
 │                                         ▼               │
 │  ┌──────────────────────────────────────────────────┐   │
