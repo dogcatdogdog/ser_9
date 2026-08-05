@@ -31,12 +31,12 @@
 
 - [x] CLAUDE.md, A3_REQUIREMENTS.md, A3_ARCHITECTURE.md, A3_SCHEMA.md, A3_DEVPLAN.md
 
-### D3 (8/6): 空函数骨架
+### D3 (8/6): 空函数骨架 ✅
 
-- [ ] 创建 `a3_python/` 目录结构
-- [ ] 实现 `solver.py::plan_multistop()` 空函数（接收参数、返回 RoutePlan(dummy)）
-- [ ] 实现 `energy_model.py` 空壳
-- [ ] 3 个单测用例（正例/退化/边界），此时全部预期失败
+- [x] 创建 `a3_python/` 目录结构 (route.py / solver.py / energy_model.py / heuristic.py / benchmark.py)
+- [x] 实现 `solver.py::plan_multistop()` — 输入验证 + 按输入顺序构造路线 + 能耗模拟
+- [x] 实现 `energy_model.py` — 几何距离 + 等效距离变换 + 路线电量模拟 (核心公式已实现)
+- [x] 24 单测 (正例/退化/边界/一致性) — 全部通过
 
 ---
 
@@ -192,6 +192,10 @@
 
 ## 当前状态
 
-**阶段**: W1 骨架 — 文档完成，待空函数 + 单测
+**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线
 **阻塞**: 无
-**下一步**: 创建 `a3_python/` 目录结构 + `plan_multistop()` 空函数 + 3 单测
+**下一步**: energy_model.py 已实现核心公式, W2 聚焦:
+  - `compute_geo_matrix()` 批量距离矩阵 (numpy)
+  - PyVRP baseline 对比 (5/10/20 点)
+  - 数据生成器 (自建场景 + Solomon VRPTW 前 20 点)
+  - 无人机参数配置表 (3 种机型)
