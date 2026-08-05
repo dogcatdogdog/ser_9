@@ -53,9 +53,15 @@ D:\ser_9\
 │   ├── route.py                 # RoutePlan/Segment 数据结构
 │   ├── benchmark.py             # 评测: vs OR-Tools / PyVRP / 消融
 │   └── tests/                   # 单测 (≥10, 对齐 path-ai 范式)
+│       ├── conftest.py           # 共享 fixtures
 │       ├── test_energy_model.py
 │       ├── test_solver.py
-│       └── test_heuristic.py
+│       ├── test_heuristic.py
+│       ├── test_integration.py   # 5-8 集成测试
+│       └── fixtures/             # 标准测试数据集
+│           ├── solomon_r101_n20.json
+│           ├── custom_5_heavy.json
+│           └── custom_10_tight.json
 ├── a3_rust/                     # Rust 落地 (W6 启动)
 │   ├── Cargo.toml
 │   └── src/
@@ -167,24 +173,50 @@ main           # 稳定版本，通过所有单测 + review
 
 ## 测试策略
 
-### 单测要求 (对标 path-ai 23 例)
+### 测试金字塔
 
-- **最小要求**: ≥ 10 例，覆盖正例/退化/边界 (详见 `A3_SCHEMA.md` §5)
-- **测试框架**: pytest
+```
+           ┌──────────────┐
+           │   Benchmark   │  Solomon 全集 + OR-Tools/PyVRP/VeRyPy
+           │   10+ instances│  每周跑，产出论文指标表
+           ├──────────────┤
+           │  Integration  │  标准实例 (R101, 自建 5/10/20 点)
+           │   5-8 cases   │  验证完整流程，对比已知最优解
+           ├──────────────┤
+           │  Unit Tests   │  mock 数据，验证单一模块
+           │   ≥10 cases   │  每次 commit 跑，< 5s
+           └──────────────┘
+```
+
+### 单元测试 (pytest, ≥10 例)
+
+- **框架**: pytest
+- **数据**: Python 内联 mock (2-5 个硬编码坐标点)
+- **耗时**: 全部 < 5s
+- **要求**: 正例 ≥3 / 退化 ≥3 / 边界 ≥2 / 一致性 ≥2 / 回归 ≥1
 - **命名**: `test_<模块>_<场景>.py`
-- **断言**: 禁止 `assert True` 占位；每个 case 必须有明确的期望值
+- **断言**: 禁止 `assert True` 占位
+- 所有用例定义见 `A3_SCHEMA.md` §5.2
 
-### 测试类别
+### 集成测试 (pytest, 5-8 例)
 
-| 类别 | 要求 | 示例 |
-|------|------|------|
-| 正例 (happy path) | ≥ 3 | 3/5/10 点、电量充裕 → feasible=True |
-| 退化 (degraded) | ≥ 3 | 电量不足/超载 → feasible=False + 明确原因 |
-| 边界 (boundary) | ≥ 2 | 1 点、0 点、满载=容量 |
-| 一致性 (consistency) | ≥ 2 | 同输入同 seed → 同输出；能量模型不对称验证 |
-| 回归 (regression) | ≥ 1 | 5 点已知最优解 gap < 10% |
+- **数据**: Solomon VRPTW 子集 (R101/C101/RC101) + 自建配送场景
+- **断言**: 对比 OR-Tools 最优解，gap < 10%
+- 所有用例定义见 `A3_SCHEMA.md` §5.3
 
-### Benchmark 脚本
+### Benchmark 管线
+
+```bash
+# 完整评测 (所有 Solomon 子集 + 4 基线对比)
+python a3_python/benchmark.py --points 10,15,20 --runs 10 --output results/
+
+# 快速冒烟 (只跑 R101_20，1 次)
+python a3_python/benchmark.py --quick
+```
+
+对比基线: OR-Tools (最优解) | PyVRP (无电量) | VeRyPy (15 种经典启发式)
+消融矩阵: 完整方法 vs 去 Or-opt / 去 2-opt / 仅 NN / 固定载重
+详见 `A3_SCHEMA.md` §5.4
 
 ```bash
 # 运行完整评测 (vs OR-Tools / PyVRP / 消融)

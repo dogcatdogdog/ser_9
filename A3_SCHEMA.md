@@ -278,7 +278,28 @@ feasibility_check(route):
     return FEASIBLE
 ```
 
-## 5. 单测用例设计（≥10 例）
+## 5. 测试基础设施
+
+### 5.1 测试金字塔
+
+```
+           ┌──────────────┐
+           │   Benchmark   │  Solomon 全量 + OR-Tools/PyVRP/VeRyPy 对比
+           │   10+ instances│  每周跑一次，产出论文指标表
+           ├──────────────┤
+           │  Integration  │  标准实例 (R101, 自建 5/10/20 点)
+           │   5-8 cases   │  验证完整求解流程，对比已知最优解
+           ├──────────────┤
+           │  Unit Tests   │  mock 数据，验证单一模块正确性
+           │   ≥10 cases   │  每次 commit 跑，< 5s 全部通过
+           └──────────────┘
+```
+
+### 5.2 单元测试 (pytest, ≥10 例)
+
+**目的**: 验证单一函数的正确性，每次 commit 跑，必须 < 5s。
+
+**测试数据**: Python 内联 mock — 2~5 个硬编码坐标点，无需外部文件。
 
 | # | 类型 | 场景 | 断言 | 对应专利创新点 |
 |---|------|------|------|:---:|
@@ -292,3 +313,81 @@ feasibility_check(route):
 | 8 | 一致性 | 相同输入、相同 seed | 输出完全一致 (确定性) | — |
 | 9 | 能量模型 | 先送重货 vs 先送轻货 | 访问顺序不同 → equiv_dist 不同 | 载重-能耗耦合 |
 | 10 | 回归 | 5 点已知最优解 | 启发式解与最优解的 gap < 10% | 整体方法 |
+
+### 5.3 集成测试 (pytest, 5-8 例)
+
+**目的**: 在标准 VRP 实例上验证完整求解流程，对比已知最优解验证 gap。
+
+**测试数据**: 
+- Solomon VRPTW 前 20 点 (R101, C101, RC101 三类，覆盖不同空间分布)
+- 自建无人机配送场景 (5/10/15 点，含载重和电量约束)
+
+**Solomon 实例类型**:
+| 类型 | 特点 | 实例 |
+|------|------|------|
+| C 类 (Clustered) | 点聚集分布 | C101, C102 |
+| R 类 (Random) | 点随机分布 | R101, R102 |
+| RC 类 (Mixed) | 混合分布 | RC101, RC102 |
+
+**集成测试用例**:
+| # | 数据集 | 点数 | 断言 |
+|---|--------|------|------|
+| 11 | Solomon R101 (截取 20 点) | 20 | feasible=True, gap vs OR-Tools < 10% |
+| 12 | Solomon C101 (截取 20 点) | 20 | feasible=True, gap vs OR-Tools < 10% |
+| 13 | Solomon RC101 (截取 20 点) | 20 | feasible=True, gap vs OR-Tools < 10% |
+| 14 | 自建 5 点 (含载重) | 5 | feasible=True, 载重约束满足 |
+| 15 | 自建 10 点 (含电量紧张) | 10 | feasible=False (电量不够), 原因明确 |
+| 16 | 自建 15 点 (载重+电量联合) | 15 | feasible=True, 与 OR-Tools 无电量版的解不同 |
+
+### 5.4 Benchmark 管线
+
+**目的**: 生成论文-ready 指标表，每周或里程碑节点跑。
+
+**输入**: 
+- Solomon VRPTW 全集 (56 个实例，取前 20 点的子集)
+- 或自建配送场景集 (10/15/20 点，各 5 个随机种子)
+
+**对比基线**:
+
+| 基线 | 求解器 | 用途 |
+|------|--------|------|
+| 最优解 (Optimal) | OR-Tools 精确求解 | 小规模 (≤15) gap 计算 |
+| PyVRP 无电量 | `pyvrp.solve()` | 验证电量约束改变了最优解 |
+| VeRyPy 启发式 | NN, Savings, Sweep, CI, 3-opt | 消融实验: 我们的构造+搜索 vs 经典方法 |
+| 我们的方法 | `plan_multistop()` | 被测方法 |
+
+**输出指标** (每个实例):
+```
+instance | points | our_cost | our_time | opt_cost | gap% | pyvrp_cost | feasible
+R101_20  | 20     | 4521     | 2.3s     | 4380     | 3.2% | 4210       | true
+C101_20  | 20     | 3890     | 1.8s     | 3850     | 1.0% | 3850       | true
+...
+```
+
+**消融矩阵**:
+```
+                    总等效距离 | 求解时间 | 可行率
+完整方法 (NN+2opt+Or)   100%    |  100%    | 100%
+- 去掉 Or-opt           105%    |   60%    | 100%
+- 去掉 2-opt            112%    |   40%    |  95%
+- 只用 NN 构造          120%    |   10%    |  90%
+- 固定载重 (beta=0)      *      |  100%    |  85% ← 误判可行!
+```
+
+### 5.5 测试数据目录结构
+
+```
+a3_python/
+├── tests/
+│   ├── conftest.py              # 共享 fixtures
+│   ├── test_energy_model.py     # 单元测试 1-10
+│   ├── test_solver.py
+│   ├── test_heuristic.py
+│   ├── test_integration.py      # 集成测试 11-16
+│   └── fixtures/
+│       ├── solomon_r101_n20.json   # Solomon 子集
+│       ├── solomon_c101_n20.json
+│       ├── custom_5_heavy.json     # 自建: 5点, 重载场景
+│       ├── custom_10_tight.json    # 自建: 10点, 电量紧张
+│       └── custom_15_mixed.json    # 自建: 15点, 联合约束
+└── benchmark.py                # 批量评测脚本
