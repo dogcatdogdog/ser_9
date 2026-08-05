@@ -23,7 +23,6 @@ from pyvrp import Model
 from pyvrp.stop import MaxRuntime
 
 from .route import GeoPoint, Target, DroneSpec
-from .energy_model import compute_geo_matrix
 from .data_generator import generate_targets
 
 # === 模块级常量 ===
@@ -188,7 +187,7 @@ def run_baseline_suite(
         results[name] = solve_tsp_pyvrp(targets, home, time_limit, name)
 
     # Solomon fixtures (如果可用)
-    from .tests.utils import load_fixture_json, targets_from_dict
+    from .fixture_loader import load_fixture_json, targets_from_dict
     for fixture_name in ["solomon_r101_n20", "solomon_c101_n20", "solomon_rc101_n20"]:
         try:
             data = load_fixture_json(f"{fixture_name}.json")

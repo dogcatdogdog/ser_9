@@ -12,10 +12,8 @@ import os
 import time
 from .route import GeoPoint, Target, DroneSpec
 from .solver import plan_multistop
-from .tests.utils import load_fixture_json, targets_from_dict
+from .fixture_loader import load_fixture_json, targets_from_dict
 from .data_generator import generate_targets
-
-FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "tests", "fixtures")
 
 
 def quick_smoke_test() -> dict:

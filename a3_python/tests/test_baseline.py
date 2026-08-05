@@ -88,7 +88,7 @@ def test_solve_tsp_pyvrp_1point():
 
 def test_solve_tsp_solomon_r101():
     """Solomon R101 n20: PyVRP 应找到可行解"""
-    from a3_python.tests.utils import load_fixture_json, targets_from_dict
+    from a3_python.fixture_loader import load_fixture_json, targets_from_dict
 
     try:
         data = load_fixture_json("solomon_r101_n20.json")

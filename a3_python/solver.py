@@ -56,9 +56,8 @@ def plan_multistop(
 
     total_payload = sum(t.demand for t in targets)
 
-    # 不可行时清空序列 (超载/电量不足导致无可行路线)
-    if not feasible and len(segments) == 0:
-        sequence = []
+    # 不可行时仍保留 sequence + warnings 供诊断
+    # simulate_route_energy 已通过 warnings 说明了不可行原因 (超载/电量不足)
 
     return RoutePlan(
         sequence=sequence,

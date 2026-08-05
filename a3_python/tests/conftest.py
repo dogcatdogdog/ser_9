@@ -2,7 +2,7 @@
 
 import pytest
 from a3_python.route import GeoPoint, Target, DroneSpec
-from a3_python.tests.utils import load_fixture_json, targets_from_dict
+from a3_python.fixture_loader import load_fixture_json, targets_from_dict
 
 
 # === 基础 fixtures ===
