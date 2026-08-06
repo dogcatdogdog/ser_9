@@ -83,21 +83,21 @@
 - [x] 选较优者作为主构造方法
 - [x] 单测: 验证构造解满足载重 + 电量约束
 
-### W4 (8/22-8/28): 局部搜索
+### W4 (8/22-8/28): 局部搜索 ✅ (8/6 提前完成)
 
 **D1-D2: 2-opt**
-- [ ] 实现 2-opt 翻转操作
-- [ ] 实现增量电量评估（只重算受影响段，不做全局 O(n) 重算）
-- [ ] 单测: 验证 2-opt 后的路线仍然可行
+- [x] 实现 2-opt 翻转操作
+- [x] 实现增量电量评估（只重算受影响段，不做全局 O(n) 重算）
+- [x] 单测: 验证 2-opt 后的路线仍然可行
 
 **D3-D4: Or-opt**
-- [ ] 实现 Or-opt (移动 1/2/3 个连续点)
-- [ ] 增量评估 + 可行性检查
+- [x] 实现 Or-opt (移动 1/2/3 个连续点)
+- [x] 增量评估 + 可行性检查
 
 **D5-D7: 搜索框架**
-- [ ] 实现 first-improvement 搜索循环
-- [ ] 最大迭代次数 / 时间上限
-- [ ] 单测: 搜索后的解不比初始解差
+- [x] 实现 first-improvement 搜索循环
+- [x] 最大迭代次数 / 时间上限
+- [x] 单测: 搜索后的解不比初始解差
 
 ### W5 (8/29-9/4): 月1中检
 
@@ -199,17 +199,27 @@
 
 ## 当前状态
 
-**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线 ✅ → W3 构造启发式 ✅ → W4 局部搜索 (待启动)
+**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线 ✅ → W3 构造启发式 ✅ → W4 局部搜索 ✅ → W5 评测 (下一步)
 **阻塞**: 无
-**下一步**: W4 局部搜索:
-  - 🔍 R4.1: 2-opt 增量评估公式 (A3_RESEARCH_PLAN.md)
-  - 🔍 R4.2: Or-opt 增量评估公式
-  - 🔍 R4.3: First vs Best improvement 对比
-  - 🔍 R4.4: 2-opt 与 Or-opt 邻域组合策略
-  - 实现 2-opt + Or-opt + 增量评估
-  - 集成到 plan_multistop()
+**下一步**: W5 月1中检:
+  - 🔍 R5.1: OR-Tools 精确解对比 (A3_RESEARCH_PLAN.md)
+  - 🔍 R5.2: 消融实验设计
+  - vs OR-Tools / PyVRP / 消融实验
+  - 输出论文-ready 指标表
+  - 单测补充 + plan_multistop() 完整性检查
 
 **新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
+
+**W4 完成项 (8/6)**:
+  - `heuristic.py`: `_try_2opt_move()` — 2-opt 增量评估, O(k) 仅重算受影响段
+  - `heuristic.py`: `_try_or_opt_move()` — Or-opt 增量评估, O(|S|) 移动 1-3 点
+  - `heuristic.py`: `local_search_2opt()` — first-improvement 2-opt 搜索
+  - `heuristic.py`: `local_search_or_opt()` — first-improvement Or-opt 搜索
+  - `heuristic.py`: `local_search_vnd()` — VND 交替框架 (2-opt → Or-opt → 重复)
+  - `solver.py`: `plan_multistop()` 已集成 VND 局部搜索
+  - **调研结论**: R4.1-R4.4 全部完成, 选用 first-improvement + VND
+  - **25 新 W4 单测** (5 增量辅助 + 3 2-opt 正例 + 3 2-opt 边界 + 2 Or-opt 正例 + 2 Or-opt 边界 + 3 VND 正例 + 4 VND 一致性 + 2 增量vs全量 + 3 回归)
+  - 全量 113 单测通过, benchmark quick smoke 通过
 
 **W3 完成项 (8/5)**:
   - `heuristic.py`: `construct_nn()` — N-start 电量感知 NN, O(N × n²)
