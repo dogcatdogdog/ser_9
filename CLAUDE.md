@@ -48,15 +48,15 @@ D:\ser_9\
 ├── baseline_01_hello_pyvrp.py   # ✅ 已跑通 — PyVRP Hello World
 ├── a3_python/                   # Python 实验代码 (当前阶段)
 │   ├── __init__.py
-│   ├── solver.py                # 核心求解入口 plan_multistop()
+│   ├── solver.py                # 核心求解入口 plan_multistop() — NN 构造 + VND 搜索
 │   ├── energy_model.py          # 载重-电量耦合 + 等效距离变换
-│   ├── heuristic.py             # NN 构造 + 2-opt/Or-opt 搜索
+│   ├── heuristic.py             # NN 构造 + C-W Savings + 2-opt/Or-opt/VND 搜索
 │   ├── route.py                 # RoutePlan/Segment 数据结构
 │   ├── benchmark.py             # 评测: vs OR-Tools / PyVRP / 消融
 │   ├── baseline.py              # PyVRP 基线求解 (W2)
 │   ├── data_generator.py        # 测试数据生成器 (W2)
 │   ├── fixture_loader.py        # 共享 fixture 加载 (W2)
-│   └── tests/                   # 单测 (67 例)
+│   └── tests/                   # 单测 (113 例, W4 完成)
 │       ├── conftest.py           # 共享 fixtures
 │       ├── utils.py              # → 委托 fixture_loader.py (向后兼容)
 │       ├── test_energy_model.py  # 21 例
@@ -96,6 +96,8 @@ def plan_multistop(
     seed: int = 42           # 随机种子，保证确定性
 ) -> RoutePlan:
 ```
+
+求解流程: NN 构造 (W3) → VND 搜索 2-opt + Or-opt 交替改进 (W4)
 
 所有类型定义见 `A3_SCHEMA.md` §1。
 
