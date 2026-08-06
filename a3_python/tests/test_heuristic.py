@@ -1,7 +1,7 @@
-"""test_heuristic.py — 构造启发式 + 局部搜索 单测 (W3 实现)
+"""test_heuristic.py — 构造启发式 + 局部搜索 单测 (W3+W4 实现)
 
 测试分类:
-  正例 (positive): >=3 — 正常场景, 应找到可行解
+  正例 (positive): >=3 — 正常场景, 应找到可行解/搜索改进
   退化 (degenerate): >=3 — 不可行场景, 应正确报告
   边界 (boundary): >=2 — 极限条件
   一致性 (consistency): >=2 — 确定性 & 约束满足
@@ -18,8 +18,12 @@ from a3_python.heuristic import (
     construct_savings,
     local_search_2opt,
     local_search_or_opt,
+    local_search_vnd,
+    _try_2opt_move,
+    _try_or_opt_move,
+    _segment_payloads,
 )
-from a3_python.energy_model import euclidean_distance, compute_equiv_distance
+from a3_python.energy_model import euclidean_distance, compute_equiv_distance, simulate_route_energy
 
 
 # ====================================================================
@@ -412,32 +416,523 @@ class TestRegression:
 
 
 # ====================================================================
-# W4 占位 — 预期 NotImplementedError
+# W4 局部搜索 — 2-opt / Or-opt / VND 单测
 # ====================================================================
 
-def test_local_search_2opt_not_implemented():
-    """W4: 2-opt 尚未实现"""
-    dummy_route = RoutePlan(
-        sequence=[], segments=[],
-        total_geo_distance=0.0, total_equiv_distance=0.0,
-        total_energy_consumed=0.0, remaining_energy=0.0,
-        total_payload_delivered=0.0, feasible=False,
-    )
-    home = GeoPoint(0, 0)
-    drone = DroneSpec(50, 5000, 0.1, 0.005)
-    with pytest.raises(NotImplementedError):
-        local_search_2opt(dummy_route, {}, home, drone)
+# --- 辅助函数 (增量评估) ---
+
+class TestIncrementalHelpers:
+    """增量评估辅助函数测试"""
+
+    def test_segment_payloads_correct(self):
+        """_segment_payloads 返回正确的各段载重"""
+        targets_map = {
+            "c1": Target(id="c1", location=GeoPoint(100, 0), demand=3),
+            "c2": Target(id="c2", location=GeoPoint(200, 0), demand=5),
+            "c3": Target(id="c3", location=GeoPoint(300, 0), demand=2),
+        }
+        total_demand = 10.0
+        payloads = _segment_payloads(["c1", "c2", "c3"], targets_map, total_demand)
+        # full_path: home→c1→c2→c3→home, 4 segments
+        assert len(payloads) == 4
+        assert payloads[0] == 10.0  # home→c1: full load
+        assert payloads[1] == 7.0   # c1→c2: after delivering c1 (3)
+        assert payloads[2] == 2.0   # c2→c3: after delivering c2 (5)
+        assert payloads[3] == 0.0   # c3→home: all delivered
+
+    def test_segment_payloads_zero_demand(self):
+        """所有点 demand=0 -> payloads 全为 0"""
+        targets_map = {
+            "c1": Target(id="c1", location=GeoPoint(100, 0), demand=0),
+            "c2": Target(id="c2", location=GeoPoint(200, 0), demand=0),
+        }
+        payloads = _segment_payloads(["c1", "c2"], targets_map, 0.0)
+        assert payloads == [0.0, 0.0, 0.0]
+
+    def test_try_2opt_move_finds_improvement(self):
+        """_try_2opt_move 在存在改进时返回新序列"""
+        home = GeoPoint(0, 0)
+        targets_map = {
+            "A": Target(id="A", location=GeoPoint(100, 0), demand=1),
+            "B": Target(id="B", location=GeoPoint(200, 100), demand=1),
+            "C": Target(id="C", location=GeoPoint(100, 100), demand=1),
+            "D": Target(id="D", location=GeoPoint(200, 0), demand=1),
+        }
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+        total_demand = 4.0
+        # NN gives ['A','C','B','D'], flip C-B-D gives better route
+        sequence = ["A", "C", "B", "D"]
+        current_equiv = 650.0
+
+        result = _try_2opt_move(
+            sequence, 0, 3, targets_map, home, drone,
+            total_demand, current_equiv,
+        )
+        assert result is not None
+        new_seq, new_equiv = result
+        assert new_equiv < current_equiv
+        assert len(new_seq) == 4
+        assert set(new_seq) == {"A", "B", "C", "D"}
+
+    def test_try_2opt_move_rejects_worse_move(self):
+        """_try_2opt_move 拒绝增加等效距离的移动"""
+        home = GeoPoint(0, 0)
+        targets_map = {
+            "A": Target(id="A", location=GeoPoint(100, 0), demand=1),
+            "B": Target(id="B", location=GeoPoint(200, 0), demand=1),
+            "C": Target(id="C", location=GeoPoint(300, 0), demand=1),
+        }
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+        total_demand = 3.0
+        # On a line: A→B→C is already optimal
+        sequence = ["A", "B", "C"]
+        _, _, current_equiv, _, _, _, _ = simulate_route_energy(
+            sequence, targets_map, home, drone
+        )
+
+        result = _try_2opt_move(
+            sequence, 0, 2, targets_map, home, drone,
+            total_demand, current_equiv,
+        )
+        assert result is None
+
+    def test_try_2opt_move_rejects_battery_infeasible(self):
+        """_try_2opt_move 拒绝电池不可行的移动"""
+        home = GeoPoint(0, 0)
+        targets_map = {
+            "A": Target(id="A", location=GeoPoint(100, 0), demand=1),
+            "B": Target(id="B", location=GeoPoint(10000, 0), demand=1),
+        }
+        drone = DroneSpec(50, 500, 0.1, 0.005)  # 低电池
+        total_demand = 2.0
+        sequence = ["A", "B"]
+        _, _, current_equiv, _, _, _, _ = simulate_route_energy(
+            sequence, targets_map, home, drone
+        )
+
+        result = _try_2opt_move(
+            sequence, 0, 1, targets_map, home, drone,
+            total_demand, current_equiv,
+        )
+        if result is not None:
+            new_seq, new_equiv = result
+            _, _, _, _, _, feasible, _ = simulate_route_energy(
+                new_seq, targets_map, home, drone
+            )
+            assert feasible
 
 
-def test_local_search_or_opt_not_implemented():
-    """W4: Or-opt 尚未实现"""
-    dummy_route = RoutePlan(
-        sequence=[], segments=[],
-        total_geo_distance=0.0, total_equiv_distance=0.0,
-        total_energy_consumed=0.0, remaining_energy=0.0,
-        total_payload_delivered=0.0, feasible=False,
-    )
-    home = GeoPoint(0, 0)
-    drone = DroneSpec(50, 5000, 0.1, 0.005)
-    with pytest.raises(NotImplementedError):
-        local_search_or_opt(dummy_route, {}, home, drone)
+# --- 2-opt 搜索 ---
+
+class Test2OptPositive:
+    """2-opt 正例: 应改进初始解"""
+
+    def test_2opt_improves_crossing_route(self):
+        """2-opt 应消除路线中的交叉"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 1), (200, 100, 1), (100, 100, 1), (200, 0, 1),
+        ])
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        assert nn.feasible
+
+        targets_map = {t.id: t for t in targets}
+        opt2 = local_search_2opt(nn, targets_map, home, drone)
+        assert opt2.feasible
+        assert len(opt2.sequence) == len(targets)
+        assert set(opt2.sequence) == {t.id for t in targets}
+        _verify_constraints(opt2, targets, home, drone)
+        # 2-opt should not make things worse
+        assert opt2.total_equiv_distance <= nn.total_equiv_distance + 0.01
+
+    def test_2opt_improves_scattered_points(self):
+        """2-opt 在散点上的改进"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (500, 500, 1), (100, 100, 1), (400, 400, 1),
+            (200, 200, 1), (300, 300, 1),
+        ])
+        drone = DroneSpec(20, 20000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        opt2 = local_search_2opt(nn, targets_map, home, drone)
+
+        assert opt2.feasible
+        assert set(opt2.sequence) == {t.id for t in targets}
+        _verify_constraints(opt2, targets, home, drone)
+        assert opt2.total_equiv_distance <= nn.total_equiv_distance + 0.01
+
+    def test_2opt_preserves_all_points(self):
+        """2-opt 不丢失任何目标点"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 2), (50, 80, 3), (200, 50, 2), (150, 200, 4), (300, 100, 1),
+        ])
+        drone = DroneSpec(50, 10000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        opt2 = local_search_2opt(nn, targets_map, home, drone)
+
+        assert len(opt2.sequence) == len(targets)
+        assert set(opt2.sequence) == set(nn.sequence)
+
+
+class Test2OptBoundary:
+    """2-opt 边界用例"""
+
+    def test_2opt_empty_route(self):
+        """空路线搜索 -> 原样返回"""
+        route = RoutePlan(
+            sequence=[], segments=[],
+            total_geo_distance=0.0, total_equiv_distance=0.0,
+            total_energy_consumed=0.0, remaining_energy=1000.0,
+            total_payload_delivered=0.0, feasible=False,
+        )
+        home = GeoPoint(0, 0)
+        drone = DroneSpec(50, 5000, 0.1, 0.005)
+        result = local_search_2opt(route, {}, home, drone)
+        assert result.sequence == []
+        assert result.total_equiv_distance == 0.0
+
+    def test_2opt_single_point(self):
+        """单点路线搜索 -> 原样返回"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([(100, 0, 5)])
+        drone = DroneSpec(50, 5000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        opt2 = local_search_2opt(nn, targets_map, home, drone)
+
+        assert opt2.sequence == nn.sequence
+        assert opt2.total_equiv_distance == nn.total_equiv_distance
+
+    def test_2opt_max_iterations_exhausted(self):
+        """max_iterations=1 仅执行一轮搜索"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 1), (200, 100, 1), (100, 100, 1), (200, 0, 1),
+        ])
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        opt2 = local_search_2opt(nn, targets_map, home, drone, max_iterations=1)
+        assert opt2.feasible
+
+
+# --- Or-opt 搜索 ---
+
+class TestOrOptPositive:
+    """Or-opt 正例"""
+
+    def test_or_opt_improves_suboptimal_route(self):
+        """Or-opt 通过移动点段改进路线"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 1), (200, 100, 1), (100, 100, 1),
+            (200, 0, 1), (300, 50, 1),
+        ])
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        or_opt = local_search_or_opt(nn, targets_map, home, drone)
+
+        assert or_opt.feasible
+        assert set(or_opt.sequence) == {t.id for t in targets}
+        _verify_constraints(or_opt, targets, home, drone)
+        assert or_opt.total_equiv_distance <= nn.total_equiv_distance + 0.01
+
+    def test_or_opt_preserves_all_points(self):
+        """Or-opt 不丢失任何目标点"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 2), (200, 50, 3), (50, 80, 2), (150, 200, 1),
+        ])
+        drone = DroneSpec(50, 10000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        or_opt = local_search_or_opt(nn, targets_map, home, drone)
+
+        assert len(or_opt.sequence) == len(targets)
+        assert set(or_opt.sequence) == set(nn.sequence)
+
+
+class TestOrOptBoundary:
+    """Or-opt 边界用例"""
+
+    def test_or_opt_single_point(self):
+        """单点路线 Or-opt 搜索 -> 原样返回"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([(100, 0, 5)])
+        drone = DroneSpec(50, 5000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        or_opt = local_search_or_opt(nn, targets_map, home, drone)
+
+        assert or_opt.sequence == nn.sequence
+
+    def test_or_opt_segment_size_one(self):
+        """max_segment_size=1 只移动单个点"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 1), (200, 100, 1), (100, 100, 1), (200, 0, 1),
+        ])
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        or_opt = local_search_or_opt(
+            nn, targets_map, home, drone, max_segment_size=1,
+        )
+        assert or_opt.feasible
+        assert or_opt.total_equiv_distance <= nn.total_equiv_distance + 0.01
+
+
+# --- VND 搜索 ---
+
+class TestVNDPositive:
+    """VND 正例"""
+
+    def test_vnd_improves_nn_solution(self):
+        """VND (2-opt + Or-opt 交替) 改进 NN 初始解"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 1), (200, 100, 1), (100, 100, 1),
+            (200, 0, 1), (300, 50, 1),
+        ])
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        vnd = local_search_vnd(nn, targets_map, home, drone)
+
+        assert vnd.feasible
+        assert set(vnd.sequence) == {t.id for t in targets}
+        _verify_constraints(vnd, targets, home, drone)
+        assert vnd.total_equiv_distance <= nn.total_equiv_distance + 0.01
+
+    def test_vnd_better_than_or_equal_to_nn(self):
+        """VND 的最终解不差于 NN 初始解"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (500, 500, 1), (100, 100, 1), (400, 400, 1),
+            (200, 200, 1), (300, 300, 1),
+        ])
+        drone = DroneSpec(20, 20000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+        vnd = local_search_vnd(nn, targets_map, home, drone)
+
+        assert vnd.total_equiv_distance <= nn.total_equiv_distance + 0.01
+        _verify_constraints(vnd, targets, home, drone)
+
+    def test_vnd_multi_iteration_converges(self):
+        """VND 在多次迭代后收敛 (不再改进)"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 1), (200, 100, 1), (100, 100, 1),
+            (200, 0, 1), (150, 200, 1),
+        ])
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+
+        vnd1 = local_search_vnd(nn, targets_map, home, drone, max_iterations=5)
+        vnd2 = local_search_vnd(nn, targets_map, home, drone, max_iterations=20)
+
+        assert vnd1.sequence == vnd2.sequence
+        assert vnd1.total_equiv_distance == vnd2.total_equiv_distance
+
+
+class TestVNDConsistency:
+    """VND 一致性检查"""
+
+    def test_vnd_deterministic(self):
+        """相同输入 -> 相同 VND 输出"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 2), (50, 80, 3), (200, 50, 2), (150, 200, 4), (300, 100, 1),
+        ])
+        drone = DroneSpec(50, 10000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+
+        vnd1 = local_search_vnd(nn, targets_map, home, drone)
+        vnd2 = local_search_vnd(nn, targets_map, home, drone)
+
+        assert vnd1.sequence == vnd2.sequence
+        assert vnd1.total_equiv_distance == vnd2.total_equiv_distance
+        assert vnd1.total_energy_consumed == vnd2.total_energy_consumed
+
+    def test_vnd_constraints_satisfied_on_fixtures(self):
+        """VND 在 fixture 上的约束验证"""
+        from a3_python.fixture_loader import load_fixture_json, targets_from_dict
+
+        drone = DroneSpec(500, 100000, 0.08, 0.002)
+
+        for fn in ["custom_5_heavy.json", "custom_10_tight.json", "custom_15_mixed.json"]:
+            home, targets = targets_from_dict(load_fixture_json(fn))
+            nn = construct_nn(targets, home, drone)
+            targets_map = {t.id: t for t in targets}
+            if nn.feasible:
+                vnd = local_search_vnd(nn, targets_map, home, drone)
+                if vnd.feasible:
+                    _verify_constraints(vnd, targets, home, drone)
+                    assert vnd.total_equiv_distance <= nn.total_equiv_distance + 0.01
+
+    def test_2opt_deterministic(self):
+        """2-opt 搜索确定性"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 2), (50, 80, 3), (200, 50, 2), (150, 200, 4), (300, 100, 1),
+        ])
+        drone = DroneSpec(50, 10000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+
+        opt2_1 = local_search_2opt(nn, targets_map, home, drone)
+        opt2_2 = local_search_2opt(nn, targets_map, home, drone)
+
+        assert opt2_1.sequence == opt2_2.sequence
+        assert opt2_1.total_equiv_distance == opt2_2.total_equiv_distance
+
+    def test_or_opt_deterministic(self):
+        """Or-opt 搜索确定性"""
+        home = GeoPoint(0, 0)
+        targets = _make_targets([
+            (100, 0, 2), (50, 80, 3), (200, 50, 2),
+        ])
+        drone = DroneSpec(50, 10000, 0.1, 0.005)
+
+        nn = construct_nn(targets, home, drone)
+        targets_map = {t.id: t for t in targets}
+
+        or1 = local_search_or_opt(nn, targets_map, home, drone)
+        or2 = local_search_or_opt(nn, targets_map, home, drone)
+
+        assert or1.sequence == or2.sequence
+        assert or1.total_equiv_distance == or2.total_equiv_distance
+
+
+# --- 增量评估 vs 全量评估 ---
+
+class TestIncrementalVsFull:
+    """增量评估与全量模拟对比 (专利创新点 3 验证)"""
+
+    def test_2opt_incremental_matches_full_simulation(self):
+        """2-opt 增量评估的 delta 与全量模拟一致"""
+        home = GeoPoint(0, 0)
+        targets_map = {
+            "A": Target(id="A", location=GeoPoint(100, 0), demand=1),
+            "B": Target(id="B", location=GeoPoint(200, 100), demand=1),
+            "C": Target(id="C", location=GeoPoint(100, 100), demand=1),
+            "D": Target(id="D", location=GeoPoint(200, 0), demand=1),
+        }
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+        total_demand = 4.0
+        sequence = ["A", "C", "B", "D"]
+
+        _, _, current_equiv, _, _, _, _ = simulate_route_energy(
+            sequence, targets_map, home, drone
+        )
+        result = _try_2opt_move(
+            sequence, 0, 3, targets_map, home, drone,
+            total_demand, current_equiv,
+        )
+        assert result is not None
+        new_seq, inc_new_equiv = result
+
+        _, _, full_new_equiv, _, _, _, _ = simulate_route_energy(
+            new_seq, targets_map, home, drone
+        )
+
+        assert abs(inc_new_equiv - full_new_equiv) < 1.0, (
+            f"Incremental equiv {inc_new_equiv:.2f} vs full {full_new_equiv:.2f}"
+        )
+
+    def test_or_opt_incremental_matches_full_simulation(self):
+        """Or-opt 增量评估的 delta 与全量模拟一致"""
+        home = GeoPoint(0, 0)
+        targets_map = {
+            "A": Target(id="A", location=GeoPoint(100, 0), demand=1),
+            "B": Target(id="B", location=GeoPoint(200, 100), demand=1),
+            "C": Target(id="C", location=GeoPoint(100, 100), demand=1),
+            "D": Target(id="D", location=GeoPoint(200, 0), demand=1),
+            "E": Target(id="E", location=GeoPoint(300, 50), demand=1),
+        }
+        drone = DroneSpec(50, 50000, 0.1, 0.005)
+        total_demand = 5.0
+        sequence = ["A", "C", "B", "D", "E"]
+
+        _, _, current_equiv, _, _, _, _ = simulate_route_energy(
+            sequence, targets_map, home, drone
+        )
+        result = _try_or_opt_move(
+            sequence, 3, 4, 0, targets_map, home, drone,
+            total_demand, current_equiv,
+        )
+        if result is not None:
+            new_seq, inc_new_equiv = result
+            _, _, full_new_equiv, _, _, _, _ = simulate_route_energy(
+                new_seq, targets_map, home, drone
+            )
+            assert abs(inc_new_equiv - full_new_equiv) < 1.0, (
+                f"Incremental equiv {inc_new_equiv:.2f} vs full {full_new_equiv:.2f}"
+            )
+
+
+# --- 回归 ---
+
+class TestW4Regression:
+    """W4 回归测试 — 锁定已知预期值"""
+
+    def test_vnd_custom_5_heavy_expected(self):
+        """custom_5_heavy: VND 期望 equiv_dist (应 ≤ NN)"""
+        from a3_python.fixture_loader import load_fixture_json, targets_from_dict
+        home, targets = targets_from_dict(load_fixture_json("custom_5_heavy.json"))
+        drone = DroneSpec(500, 100000, 0.08, 0.002)
+
+        from a3_python.solver import plan_multistop
+        plan = plan_multistop(targets, home, drone)
+
+        assert plan.feasible
+        assert len(plan.sequence) == 5
+        nn = construct_nn(targets, home, drone)
+        assert plan.total_equiv_distance <= nn.total_equiv_distance + 0.01
+
+    def test_vnd_custom_15_mixed_all_visited(self):
+        """custom_15_mixed: VND 后仍访问全部 15 点"""
+        from a3_python.fixture_loader import load_fixture_json, targets_from_dict
+        home, targets = targets_from_dict(load_fixture_json("custom_15_mixed.json"))
+        drone = DroneSpec(500, 100000, 0.08, 0.002)
+
+        from a3_python.solver import plan_multistop
+        plan = plan_multistop(targets, home, drone)
+
+        assert plan.feasible
+        assert len(plan.sequence) == 15
+
+    def test_vnd_on_solomon_r101(self):
+        """Solomon R101 n20: VND 搜索后可行"""
+        from a3_python.fixture_loader import load_fixture_json, targets_from_dict
+        home, targets = targets_from_dict(load_fixture_json("solomon_r101_n20.json"))
+        drone = DroneSpec(500, 100000, 0.08, 0.002)
+
+        from a3_python.solver import plan_multistop
+        plan = plan_multistop(targets, home, drone)
+
+        assert plan.feasible
+        assert len(plan.sequence) == 20
+        _verify_constraints(plan, targets, home, drone)
