@@ -19,6 +19,27 @@ def _count_visited(sequence: list[str], targets: list[Target]) -> int:
     return sum(1 for sid in sequence if sid in target_ids)
 
 
+def _energy_gap_vs_ortools(home: GeoPoint, targets: list[Target],
+                           drone: DroneSpec) -> tuple[float, object]:
+    """plan_multistop vs OR-Tools 精确最优的能量 gap (W5)
+
+    双方在相同真实电量模型下评估 (evaluate_sequence_cost):
+      gap = (our_equiv − opt_route_equiv) / opt_route_equiv × 100
+    几何最优 ≠ 能量最优 (R5.1 关键论据) — 我们的解可能在几何上更长
+    但能量上更优 (gap 可为负), 能量 gap 才是同目标下的公平比较。
+
+    Returns:
+        (gap%, ExactResult)
+    """
+    from a3_python.exact import solve_tsp_exact_cpsat, compute_gap, evaluate_sequence_cost
+
+    result = plan_multistop(targets, home, drone)
+    opt = solve_tsp_exact_cpsat(targets, home, drone=drone, instance_name="bks")
+    opt_equiv, _, _ = evaluate_sequence_cost(targets, home, drone, opt.sequence)
+    gap = compute_gap(result.total_equiv_distance, opt_equiv)
+    return gap, opt
+
+
 # ============================================================
 # 用例 11-13: Solomon 标准实例 (gap vs OR-Tools — W5 引入)
 # ============================================================
@@ -27,7 +48,7 @@ class TestSolomonInstances:
     """Solomon VRPTW 前 20 点子集集成测试"""
 
     def test_r101_n20_feasible(self, solomon_r101_n20, drone_heavy_lift):
-        """用例 11: Solomon R101 20 点 → feasible=True, 所有点被访问"""
+        """用例 11: Solomon R101 20 点 → feasible=True, 能量 gap vs OR-Tools < 10% (W5)"""
         home, targets = solomon_r101_n20
         result = plan_multistop(targets, home, drone_heavy_lift)
 
@@ -41,10 +62,13 @@ class TestSolomonInstances:
         assert result.total_energy_consumed > 0
         assert result.total_payload_delivered == sum(t.demand for t in targets)
 
-        # W5: assert gap vs OR-Tools < 10%
+        # W5: 能量 gap vs OR-Tools 精确最优 < 10% (同能量模型下评估)
+        gap, opt = _energy_gap_vs_ortools(home, targets, drone_heavy_lift)
+        assert opt.status == "optimal"
+        assert gap < 10.0, f"R101 energy-gap={gap:.2f}% vs OR-Tools 超出 10%"
 
     def test_c101_n20_feasible(self, solomon_c101_n20, drone_heavy_lift):
-        """用例 12: Solomon C101 20 点 (聚类分布) → feasible=True"""
+        """用例 12: Solomon C101 20 点 (聚类分布) → feasible=True, 能量 gap < 10% (W5)"""
         home, targets = solomon_c101_n20
         result = plan_multistop(targets, home, drone_heavy_lift)
 
@@ -52,10 +76,13 @@ class TestSolomonInstances:
         assert len(result.sequence) == 20
         assert _count_visited(result.sequence, targets) == 20
 
-        # W5: assert gap vs OR-Tools < 10%
+        # W5: 能量 gap vs OR-Tools 精确最优 < 10%
+        gap, opt = _energy_gap_vs_ortools(home, targets, drone_heavy_lift)
+        assert opt.status == "optimal"
+        assert gap < 10.0, f"C101 energy-gap={gap:.2f}% vs OR-Tools 超出 10%"
 
     def test_rc101_n20_feasible(self, solomon_rc101_n20, drone_heavy_lift):
-        """用例 13: Solomon RC101 20 点 (混合分布) → feasible=True"""
+        """用例 13: Solomon RC101 20 点 (混合分布) → feasible=True, 能量 gap < 10% (W5)"""
         home, targets = solomon_rc101_n20
         result = plan_multistop(targets, home, drone_heavy_lift)
 
@@ -63,7 +90,10 @@ class TestSolomonInstances:
         assert len(result.sequence) == 20
         assert _count_visited(result.sequence, targets) == 20
 
-        # W5: assert gap vs OR-Tools < 10%
+        # W5: 能量 gap vs OR-Tools 精确最优 < 10%
+        gap, opt = _energy_gap_vs_ortools(home, targets, drone_heavy_lift)
+        assert opt.status == "optimal"
+        assert gap < 10.0, f"RC101 energy-gap={gap:.2f}% vs OR-Tools 超出 10%"
 
 
 # ============================================================

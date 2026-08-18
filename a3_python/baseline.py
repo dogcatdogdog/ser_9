@@ -56,6 +56,7 @@ def solve_tsp_pyvrp(
     time_limit: float = DEFAULT_TIME_LIMIT,
     instance_name: str = "unnamed",
     seed: int = 42,
+    bks_cost: float | None = None,
 ) -> BaselineResult:
     """用 PyVRP 求解纯距离 TSP (无电量约束)
 
@@ -68,6 +69,7 @@ def solve_tsp_pyvrp(
         time_limit: PyVRP 求解时限 (秒)
         instance_name: 实例名称 (用于报告)
         seed: 随机种子
+        bks_cost: 已知最优解 (BKS) 成本, 提供时计算 gap_vs_best (W5)
 
     Returns:
         BaselineResult: 包含最优解路线、总距离、求解时间等
@@ -146,6 +148,11 @@ def solve_tsp_pyvrp(
                         route.append(targets[client_idx].id)
             total_distance = route_obj.distance() / DISTANCE_SCALE
 
+    # W5: 如果提供了 BKS, 计算 PyVRP vs 最优的 gap
+    gap_vs_best: float | None = None
+    if bks_cost is not None and bks_cost > 0 and total_distance > 0:
+        gap_vs_best = (total_distance - bks_cost) / bks_cost * 100.0
+
     return BaselineResult(
         instance_name=instance_name,
         n_points=n,
@@ -155,6 +162,7 @@ def solve_tsp_pyvrp(
         solve_time_ms=round(elapsed_ms, 2),
         feasible=solution.is_feasible() and solution.is_complete(),
         num_routes=solution.num_routes(),
+        gap_vs_best=gap_vs_best,
     )
 
 

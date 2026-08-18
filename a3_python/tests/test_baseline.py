@@ -56,6 +56,31 @@ def test_solve_tsp_pyvrp_deterministic():
     assert r1.optimal_cost == r2.optimal_cost
 
 
+def test_solve_tsp_pyvrp_gap_vs_best():
+    """W5: 提供 bks_cost 时计算 gap_vs_best"""
+    targets = generate_targets(5, distribution="circle", scale=1000.0)
+    home = GeoPoint(x=0.0, y=0.0)
+
+    r = solve_tsp_pyvrp(targets, home, time_limit=5, instance_name="test",
+                        bks_cost=5000.0)
+
+    assert r.gap_vs_best is not None
+    # gap = (our − bks) / bks × 100
+    assert r.gap_vs_best == pytest.approx(
+        (r.total_distance - 5000.0) / 5000.0 * 100.0)
+    assert r.gap_vs_best >= 0.0  # PyVRP 结果不应优于 BKS
+
+
+def test_solve_tsp_pyvrp_no_bks_no_gap():
+    """回归: 不提供 bks_cost 时 gap_vs_best 为 None (W2 行为不变)"""
+    targets = generate_targets(5, distribution="circle", scale=1000.0)
+    home = GeoPoint(x=0.0, y=0.0)
+
+    r = solve_tsp_pyvrp(targets, home, time_limit=5, instance_name="test")
+
+    assert r.gap_vs_best is None
+
+
 # ====================================================================
 # 退化/边界
 # ====================================================================
