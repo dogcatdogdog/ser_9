@@ -299,6 +299,19 @@ python a3_python/benchmark.py --quick
 - 文档字符串: 中文注释，英文标识符
 - 硬编码数值: 必须声明为模块级常量 (如 `DEFAULT_ALPHA = 0.1`)
 
+### 命令调用约定（配合 `.claude/settings.json` 权限白名单）
+
+**权限匹配机理**: 命令按 `;` / `&&` / `|` 拆段逐段匹配白名单，**引号内的分号也会被拆**。
+任何一段无规则 → 整条命令触发用户确认。为免确认，命令调用必须：
+
+- 单段命令，以白名单动词开头（`& "D:\ser_9\env312\python.exe"` / `git` / `Get-Content` 等）
+- 不使用 `Set-Location` 前缀 — 工作目录跨调用保留，无需 cd
+- 不使用 `$env:VAR=...` 前缀 — 需要 UTF-8 输出时用 `python -X utf8`
+- **禁止 `python -c "多语句"`**（代码内分号拆段必弹确认）— 多语句逻辑先写临时脚本文件再运行
+- 验证 JSON 用 PowerShell 原生 `Get-Content ... -Raw | ConvertFrom-Json`
+
+白名单/deny 列表见 `.claude/settings.json`（已入库，合并后全仓库生效）。
+
 ## 四个硬节点
 
 | 节点 | 周 | 交付物 |
