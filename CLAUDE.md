@@ -52,19 +52,23 @@ D:\ser_9\
 │   ├── energy_model.py          # 载重-电量耦合 + 等效距离变换
 │   ├── heuristic.py             # NN 构造 + C-W Savings + 2-opt/Or-opt/VND 搜索
 │   ├── route.py                 # RoutePlan/Segment 数据结构
-│   ├── benchmark.py             # 评测: vs OR-Tools / PyVRP / 消融
-│   ├── baseline.py              # PyVRP 基线求解 (W2)
+│   ├── exact.py                 # 精确解基线 (W5): CP-SAT + Held-Karp + 能量感知 DP
+│   ├── ablation.py              # 消融实验 (W5): 6 变体组合现有纯函数
+│   ├── benchmark.py             # 评测: vs OR-Tools / PyVRP / 消融 → 论文指标表
+│   ├── baseline.py              # PyVRP 基线求解 (W2, W5 加 gap_vs_best)
 │   ├── data_generator.py        # 测试数据生成器 (W2)
 │   ├── fixture_loader.py        # 共享 fixture 加载 (W2)
-│   └── tests/                   # 单测 (113 例, W4 完成)
+│   └── tests/                   # 单测 (145 例, W5 完成)
 │       ├── conftest.py           # 共享 fixtures
 │       ├── utils.py              # → 委托 fixture_loader.py (向后兼容)
 │       ├── test_energy_model.py  # 21 例
 │       ├── test_solver.py        # 9 例
-│       ├── test_heuristic.py     # 4 例
-│       ├── test_integration.py   # 8 例
-│       ├── test_baseline.py      # 6 例 (W2)
+│       ├── test_heuristic.py     # 54 例 (W4 50 + W5 full_eval 4)
+│       ├── test_integration.py   # 8 例 (W5 补 3 个能量 gap 断言)
+│       ├── test_baseline.py      # 8 例 (W5 +2)
 │       ├── test_data_generator.py # 19 例 (W2)
+│       ├── test_exact.py         # 15 例 (W5)
+│       ├── test_ablation.py      # 11 例 (W5)
 │       └── fixtures/             # 标准测试数据集 (6 个)
 │           ├── solomon_r101_n20.json
 │           ├── solomon_c101_n20.json
@@ -72,6 +76,7 @@ D:\ser_9\
 │           ├── custom_5_heavy.json
 │           ├── custom_10_tight.json
 │           └── custom_15_mixed.json
+├── results/                     # benchmark 输出 (W5): benchmark_*.json + table_*.md
 ├── a3_rust/                     # Rust 落地 (W6 启动)
 │   ├── Cargo.toml
 │   └── src/
@@ -278,11 +283,14 @@ python a3_python/benchmark.py --quick
 
 ### 禁止事项
 
-- ❌ 在 `solver.py` 或 `solver.rs` 中 import PyVRP
+- ❌ 在 `solver.py` 或 `solver.rs` 中 import PyVRP / OR-Tools
 - ❌ 在 Rust 侧引入 OR-Tools 绑定
 - ❌ 使用网络调用、文件 I/O、全局可变状态
 - ❌ 跳过单测直接提交核心算法代码
 - ❌ 修改 `A3_SCHEMA.md` 的函数签名而不更新 `CLAUDE.md`
+
+> OR-Tools 仅允许出现在 `exact.py` (W5 精确解评测基线, CP-SAT 电路约束, n≤20) 与
+> `benchmark.py` 调用链中 — 与 PyVRP 一样只做评测对比, 不出现在 solver 核心路径。
 
 ### 编码规范
 
@@ -290,6 +298,19 @@ python a3_python/benchmark.py --quick
 - Rust: `cargo fmt` + `cargo clippy -- -D warnings`
 - 文档字符串: 中文注释，英文标识符
 - 硬编码数值: 必须声明为模块级常量 (如 `DEFAULT_ALPHA = 0.1`)
+
+### 命令调用约定（配合 `.claude/settings.json` 权限白名单）
+
+**权限匹配机理**: 命令按 `;` / `&&` / `|` 拆段逐段匹配白名单，**引号内的分号也会被拆**。
+任何一段无规则 → 整条命令触发用户确认。为免确认，命令调用必须：
+
+- 单段命令，以白名单动词开头（`& "D:\ser_9\env312\python.exe"` / `git` / `Get-Content` 等）
+- 不使用 `Set-Location` 前缀 — 工作目录跨调用保留，无需 cd
+- 不使用 `$env:VAR=...` 前缀 — 需要 UTF-8 输出时用 `python -X utf8`
+- **禁止 `python -c "多语句"`**（代码内分号拆段必弹确认）— 多语句逻辑先写临时脚本文件再运行
+- 验证 JSON 用 PowerShell 原生 `Get-Content ... -Raw | ConvertFrom-Json`
+
+白名单/deny 列表见 `.claude/settings.json`（已入库，合并后全仓库生效）。
 
 ## 四个硬节点
 

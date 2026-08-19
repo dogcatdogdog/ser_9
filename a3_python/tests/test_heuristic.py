@@ -936,3 +936,75 @@ class TestW4Regression:
         assert plan.feasible
         assert len(plan.sequence) == 20
         _verify_constraints(plan, targets, home, drone)
+
+# --- W5 材料: 全量评估版搜索 (增量 vs 全量速度对比的对照组) ---
+
+class TestW5FullEval:
+    """full_eval=True 搜索与增量评估搜索的解一致 (创新点 3 对照组)"""
+
+    def _instance(self, n: int, seed: int = 42):
+        from a3_python.data_generator import generate_targets
+        targets = generate_targets(n, distribution="random", scale=1000.0,
+                                   seed=seed, demand_range=(1.0, 3.0))
+        home = GeoPoint(x=0.0, y=0.0)
+        drone = DroneSpec(50, 5000, 0.1, 0.005)
+        return targets, home, drone
+
+    def test_vnd_full_eval_matches_incremental(self):
+        """一致性: 全量评估 VND 与增量评估 VND 解成本一致 (≤1%)"""
+        targets, home, drone = self._instance(10, seed=3)
+        targets_map = {t.id: t for t in targets}
+        initial = construct_nn(targets, home, drone)
+        assert initial.feasible
+
+        inc = local_search_vnd(initial, targets_map, home, drone, max_iterations=20)
+        full = local_search_vnd(initial, targets_map, home, drone,
+                                max_iterations=20, full_eval=True)
+
+        assert inc.feasible and full.feasible
+        rel = abs(inc.total_equiv_distance - full.total_equiv_distance) / max(
+            inc.total_equiv_distance, 1e-9)
+        assert rel < 0.01, (
+            f"增量 {inc.total_equiv_distance:.2f} vs 全量 {full.total_equiv_distance:.2f}"
+        )
+
+    def test_2opt_full_eval_matches_incremental(self):
+        """一致性: 2-opt 全量评估与增量评估解成本一致"""
+        targets, home, drone = self._instance(8, seed=7)
+        targets_map = {t.id: t for t in targets}
+        initial = construct_nn(targets, home, drone)
+        assert initial.feasible
+
+        inc = local_search_2opt(initial, targets_map, home, drone, max_iterations=20)
+        full = local_search_2opt(initial, targets_map, home, drone,
+                                 max_iterations=20, full_eval=True)
+
+        rel = abs(inc.total_equiv_distance - full.total_equiv_distance) / max(
+            inc.total_equiv_distance, 1e-9)
+        assert rel < 0.01
+
+    def test_full_eval_flag_default_is_incremental(self):
+        """回归: full_eval 缺省值 False, 行为与 W4 一致"""
+        targets, home, drone = self._instance(6, seed=1)
+        targets_map = {t.id: t for t in targets}
+        initial = construct_nn(targets, home, drone)
+
+        a = local_search_vnd(initial, targets_map, home, drone, max_iterations=10)
+        b = local_search_vnd(initial, targets_map, home, drone,
+                             max_iterations=10, full_eval=False)
+
+        assert a.sequence == b.sequence
+        assert a.total_equiv_distance == b.total_equiv_distance
+
+    def test_full_eval_not_worse_than_initial(self):
+        """正例: 全量评估搜索不劣于初始解"""
+        targets, home, drone = self._instance(10, seed=42)
+        targets_map = {t.id: t for t in targets}
+        initial = construct_nn(targets, home, drone)
+        assert initial.feasible
+
+        full = local_search_vnd(initial, targets_map, home, drone,
+                                max_iterations=20, full_eval=True)
+
+        assert full.feasible
+        assert full.total_equiv_distance <= initial.total_equiv_distance + 1e-6

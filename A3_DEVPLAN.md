@@ -7,7 +7,10 @@
 ## 目标
 
 **MVP 交付 (W1-W9)**: Python 验证 → Rust 落地 → 专利交底书初稿
-**论文/专利定稿 (W10-W13)**: 对比实验 + 消融 → 可投递/可申报
+**交付定稿 (W10-W13)**: 专利交底书（可申报）为唯一交付物 —
+  材料策略: 全程储备支撑专利实施例与有益效果的量化数据（对比/消融/扩展），
+  尽量准备充分、冗余只多不少；不做论文级实验（显著性检验等，结果达不到
+  论文要求则无需）（8/19 定稿）
 
 ## 总览
 
@@ -99,25 +102,37 @@
 - [x] 最大迭代次数 / 时间上限
 - [x] 单测: 搜索后的解不比初始解差
 
-### W5 (8/29-9/4): 月1中检
+### W5 (8/29-9/4): 月1中检 ✅ (8/18 提前完成)
 
 **D1-D3: 评测**
-- [ ] vs OR-Tools (≤15 点精确解): 在自建 5/10/15 点上计算 gap
-- [ ] vs PyVRP (无电量约束版): 同时跑自建数据和 Solomon R101/C101/RC101, 对比解差异
-- [ ] Solomon 标准实例验收: R101/C101/RC101 前 20 点, 与已知最优解对比
-- [ ] 消融实验 (用 data_generator 批量生成):
-  - 去掉电量约束 → 标准 TSP/VPR
-  - 固定载重（不衰减）→ 忽略耦合效应
-  - 只用 NN 构造（不搜索）
-- [ ] 规模扩展: 自建 5→10→20 点 + Solomon 全集求解时间曲线
+- [x] vs OR-Tools (≤15 点精确解): 在自建 5/10/15 点上计算 gap
+      — `exact.py`: CP-SAT 电路约束精确解 (n≤20, 与 Held-Karp 一致) + 能量感知 DP 精确最优 (n≤15)
+      — 双基线: gap_geo (几何) + gap_energy (同能量模型公平比较, 实测多为负 = 我们更省电)
+- [x] vs PyVRP (无电量约束版): 同时跑自建数据和 Solomon R101/C101/RC101, 对比解差异
+      — `baseline.py`: solve_tsp_pyvrp 支持 bks_cost → gap_vs_best (W2 预留字段激活)
+- [x] Solomon 标准实例验收: R101/C101/RC101 前 20 点, 与已知最优解对比
+      — BKS = CP-SAT 几何最优 (截断子集无文献 BKS, R5.1 结论)
+      — 集成测试断言: 能量 gap < 10% (实测 R101 −5.2% / C101 −2.1% / RC101 −16.2%)
+- [x] 消融实验 (用 data_generator 批量生成, 6 变体):
+  - 去掉电量约束 (no_energy) → 超大电池构造+搜索, 真实电池评估
+  - 固定载重 (fixed_payload, β=0) → 忽略耦合效应, 真实 β 评估
+  - 只用 NN 构造 (nn_only) / 去 2-opt (no_2opt) / 去 Or-opt (no_oropt)
+      — 实测: fixed_payload 成本 +1~9%, nn_only +1~2% (10 种子 mean±std)
+- [x] 规模扩展: 自建 5→10→15 点 + Solomon 全集求解时间曲线
+      — 实测: our 1.1ms(5p) → 26ms(15p) → 116ms(20p); PyVRP 每实例 2s
 
 **D4-D6: 补全**
-- [ ] 单测补充到 ≥10 例
-- [ ] 输出论文-ready 指标表 (必须同时包含自建 5/10/20 点 + Solomon R101/C101/RC101)
-- [ ] `plan_multistop()` 入口函数完整性检查
-- [ ] Python 必须跑通 ✓
-- [ ] 指标表就绪 ✓
-- [ ] 中检不达标则简化 MVP
+- [x] 单测补充到 ≥10 例 (W5 新增 28 例: test_exact 15 + test_ablation 11 + test_baseline 2)
+- [x] 输出论文-ready 指标表 (自建 5/10/15 + tight + Solomon R101/C101/RC101 → results/)
+- [x] `plan_multistop()` 入口函数完整性检查 (纯函数 ✓ / docstring ✓ / 签名未变 ✓)
+- [x] Python 必须跑通 ✓
+- [x] 指标表就绪 ✓
+- [x] 中检不达标则简化 MVP — 达标, 无需简化
+
+**W5 关键结论 (详见 A3_RESEARCH_PLAN.md R5)**:
+  - 能量感知优化效果显著: Solomon 三实例上我们的等效成本比几何最优路线低 2-16%
+  - 标准求解器"最优解"在真实约束下可能不可行: 载重超限 (默认 demand) / 电池耗尽 (tight 区域 seed=42) — 专利论据
+  - 消融: 载重-能耗耦合贡献最大 (忽略耦合 +1~9%), 搜索 +1~2%, 增量评估贡献在速度 (毫秒级)
 
 ---
 
@@ -149,39 +164,45 @@
   4. 关键创新点 (等效电量距离变换 + 载重-能耗耦合模型 + 增量电量校验)
   5. 实施例 (5/10/20 点测试数据，与 OR-Tools 对比)
   6. 有益效果 (量化对比: gap<10%, 零坠机误判)
-- [ ] 论文框架（Abstract · Introduction · Method · Experiments）
+- [ ] 论文框架（可选 — 不作为交付要求，交底书已覆盖同内容）
 - [ ] 代码清理 + 注释整理
 
 ### W9 (9/26-10/2): 初稿验收
 
-- [ ] 初稿 Deadline: Rust 落地 + 文档 + 交底书/论文框架
+- [ ] 初稿 Deadline: Rust 落地 + 文档 + 专利交底书初稿
 - [ ] 硬节点评审
-- [ ] 定专利/论文去向
+- [ ] 交底书评审（交付形态已定: 专利）
 
 ---
 
-## W10-W13: 实验发文
+## W10-W13: 专利材料完善 + 定稿
 
-### W10: 实验设计
+> 策略（8/19 定稿）: 专利交底书为唯一交付物。W10-W11 完善实施例与有益效果
+> 所需的量化材料（尽量准备充分，但只做必要的实验，不做论文级深化），
+> W12 撰写，W13 定稿。
 
-- [ ] 对比基线选定
-- [ ] 时间窗支持（进阶）
-- [ ] 实验能证伪创新点
+### W10: 材料完善（两项已提前至 8/19 完成 ✅）
 
-### W11: 对比 + 消融
+- [x] 自建 20 点补进指标表 — 指标表现含 5/10/15/20 共 93 实例
+      （circle_20p 几何 gap=0.00, random_20p 能量 gap 多为负）
+- [x] 增量评估量化: 增量 vs 全量评估的速度对比 — 实测 9 实例平均加速比 **3.0×**
+      （2.3-3.2×，与理论 O(n)/O(k) k≈n/3 一致），解质量 100% 一致
+- [ ] 时间窗支持（进阶，不做）
 
-- [ ] 对比实验 (vs OR-Tools, vs PyVRP, vs VeRyPy heuristics)
-- [ ] 消融实验
-- [ ] 显著性检验
+### W11: 材料完善
 
-### W12: 成稿
+- [ ] 消融实验按实施例需要补全（W5 已有 6 变体，通常足够）
+- [ ] 可复现性检查（fixtures/种子固定 — 已具备，确认即可）
+- [ ] 显著性检验 — 不做（论文级）
 
-- [ ] 论文/专利成稿
+### W12: 交底书撰写
+
+- [ ] 按 W8 六章节完善专利交底书（实施例/有益效果填入 W5+W10/W11 数据）
 - [ ] 写作质量检查
 
 ### W13: 定稿
 
-- [ ] 可投递论文 / 可申报专利
+- [ ] 专利交底书定稿（可申报）
 - [ ] 结题
 
 ---
@@ -193,22 +214,37 @@
 | W1 骨架 | W1 | 8/9 | 空函数 + ≥3 单测 + 目录结构 |
 | 月1中检 | W5 | 9/4 | Python 跑通 + 指标表 (自建 5/10/20 + Solomon R101/C101/RC101) |
 | 初稿 Deadline | W9 | 10/2 | Rust 落地 + 专利交底书初稿 |
-| 定稿 | W13 | 10/30 | 可投递论文 / 可申报专利 |
+| 定稿 | W13 | 10/30 | 可申报专利交底书（唯一交付物） |
 
 ---
 
 ## 当前状态
 
-**阶段**: W1 骨架 ✅ → W2 数据管线 + 基线 ✅ → W3 构造启发式 ✅ → W4 局部搜索 ✅ → W5 评测 (下一步)
+**阶段**: W1 ✅ → W2 ✅ → W3 ✅ → W4 ✅ → W5 月1中检 ✅ → W6 Rust (下一步)
 **阻塞**: 无
-**下一步**: W5 月1中检:
-  - 🔍 R5.1: OR-Tools 精确解对比 (A3_RESEARCH_PLAN.md)
-  - 🔍 R5.2: 消融实验设计
-  - vs OR-Tools / PyVRP / 消融实验
-  - 输出论文-ready 指标表
-  - 单测补充 + plan_multistop() 完整性检查
+**下一步**: W6 Rust crate 骨架:
+  - 🔍 R6.1/R6.2 调研 (sqrt 精度 + axum 设计, 见 A3_RESEARCH_PLAN.md)
+  - `cargo init a3_rust` + dto.rs + energy.rs + solver.rs 空壳
+  - Python/Rust 同输入对比: 等效距离矩阵误差 < 1e-6 (强制对齐)
 
 **新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
+
+**W5 完成项 (8/18) + 材料完善 (8/19)**:
+  - `heuristic.py`: `local_search_2opt/or_opt/vnd` 增加 `full_eval` 参数 (默认 False)
+    + `_try_2opt_move_full/_try_or_opt_move_full` — 增量 vs 全量速度对比对照组
+  - `benchmark.py`: 新增第 4 节"增量 vs 全量评估" — 实测加速比 3.0×, 解质量 100% 一致
+  - benchmark 扩至 5/10/15/20 点 × 10 种子 + tight + Solomon = **93 实例**
+  - 消融扩至 n=20: random_20p 忽略耦合 +14.6%, 仅 NN +5.2% (规模越大贡献越显著)
+  - `exact.py`: `solve_tsp_exact_cpsat()` — OR-Tools CP-SAT 精确 TSP (n≤20, num_workers=1 确定性)
+  - `exact.py`: `solve_tsp_exact_dp()` — Held-Karp DP (n≤15, 验证 CP-SAT 用)
+  - `exact.py`: `solve_energy_exact_dp()` — 能量感知精确 DP (状态相关边权, n≤15)
+  - `exact.py`: `evaluate_sequence_cost()` + `compute_gap()` — 公平比较工具
+  - `ablation.py`: 6 变体消融 (full/nn_only/no_oropt/no_2opt/fixed_payload/no_energy)
+  - `baseline.py`: `solve_tsp_pyvrp()` 支持 bks_cost → gap_vs_best (W2 预留字段激活)
+  - `benchmark.py`: 完整评测管线 (双基线 gap + PyVRP + Solomon BKS + 消融 + 规模曲线 + 论文指标表)
+  - **调研结论**: R5.1/R5.2 完成 — CP-SAT 精确解方案 + 能量感知 DP + 6 变体消融设计
+  - **28 新 W5 单测** (15 exact + 11 ablation + 2 baseline gap), 集成测试补 3 个能量 gap 断言
+  - 全量单测通过, 完整 benchmark 通过 (73 实例, 输出 results/table_*.md)
 
 **W4 完成项 (8/6)**:
   - `heuristic.py`: `_try_2opt_move()` — 2-opt 增量评估, O(k) 仅重算受影响段
