@@ -13,7 +13,7 @@
       "PowerShell(python -c *)",
       "PowerShell(where.exe *)",
       "PowerShell(& \"D:\\ser_9\\env312\\python.exe\" *)",
-      "PowerShell($env:PYTHONIOENCODING=*)",
+      "PowerShell($env:*)",
       "PowerShell(Set-Location *)",
       "PowerShell(Copy-Item *)",
       "PowerShell(Get-Content *)",
@@ -54,6 +54,12 @@
       "mcp__context7__query-docs",
       "WebSearch",
       "WebFetch"
+    ],
+    "deny": [
+      "PowerShell(& \"D:\\ser_9\\env312\\python.exe\" -m pip uninstall *)",
+      "PowerShell(Remove-Item D:\\ser_9\\env312*)",
+      "PowerShell(Remove-Item -Recurse -Force D:\\ser_9\\env312*)",
+      "PowerShell(git push --force origin master*)"
     ]
   }
 }
