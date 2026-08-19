@@ -58,12 +58,12 @@ D:\ser_9\
 │   ├── baseline.py              # PyVRP 基线求解 (W2, W5 加 gap_vs_best)
 │   ├── data_generator.py        # 测试数据生成器 (W2)
 │   ├── fixture_loader.py        # 共享 fixture 加载 (W2)
-│   └── tests/                   # 单测 (141 例, W5 完成)
+│   └── tests/                   # 单测 (145 例, W5 完成)
 │       ├── conftest.py           # 共享 fixtures
 │       ├── utils.py              # → 委托 fixture_loader.py (向后兼容)
 │       ├── test_energy_model.py  # 21 例
 │       ├── test_solver.py        # 9 例
-│       ├── test_heuristic.py     # 4 例
+│       ├── test_heuristic.py     # 54 例 (W4 50 + W5 full_eval 4)
 │       ├── test_integration.py   # 8 例 (W5 补 3 个能量 gap 断言)
 │       ├── test_baseline.py      # 8 例 (W5 +2)
 │       ├── test_data_generator.py # 19 例 (W2)

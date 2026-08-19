@@ -1,11 +1,11 @@
 """评测脚本 — vs OR-Tools / PyVRP / 消融实验 (W5 完整实现)
 
 用法:
-    python a3_python/benchmark.py --points 5,10,20 --runs 10 --output results/
+    python a3_python/benchmark.py --points 5,10,15,20 --runs 10 --output results/
     python a3_python/benchmark.py --quick
 
 W5 评测内容 (A3_DEVPLAN.md W5 D1-D3):
-  1. vs OR-Tools 精确解: 自建 5/10/15 点, 双基线 gap
+  1. vs OR-Tools 精确解: 自建 5/10/15/20 点, 双基线 gap
      - gap_geo: 我们的几何距离 vs CP-SAT 几何最优
      - gap_energy: 我们的等效距离 vs 几何最优序列在能量模型下的成本
      - gap_energy_opt: vs 能量感知 DP 精确最优 (≤15 点)
@@ -13,6 +13,7 @@ W5 评测内容 (A3_DEVPLAN.md W5 D1-D3):
   3. Solomon 标准实例验收: BKS = CP-SAT 几何最优 (R5.1 结论)
   4. 消融矩阵: full / nn_only / no_oropt / no_2opt / fixed_payload / no_energy
   5. 规模扩展: 求解时间曲线 (5→10→15→20 + Solomon n20)
+  6. 增量 vs 全量评估速度对比 (专利创新点 3 量化, W5 材料)
 
 输出 (论文-ready):
   results/benchmark_<ts>.json — 全量数据
