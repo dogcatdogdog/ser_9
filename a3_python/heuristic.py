@@ -706,6 +706,68 @@ def _try_or_opt_move(
     return None
 
 
+# --- 全量评估版 (W5 材料: 增量 vs 全量速度对比, 创新点 3 量化) ---
+#
+# 与增量版 (专利创新点 3) 相同的搜索逻辑, 但每个候选移动用
+# simulate_route_energy 全量重算 (O(n)) 而非增量更新 (O(k))。
+# 用于 benchmark 的速度对比: 同一实例同一搜索, 量化增量评估的加速比。
+# 默认 full_eval=False, 不影响现有行为。
+
+def _try_2opt_move_full(
+    sequence: list[str],
+    i: int,
+    j: int,
+    targets_map: dict[str, Target],
+    home: GeoPoint,
+    drone: DroneSpec,
+    current_total_equiv: float,
+) -> tuple[list[str], float] | None:
+    """2-opt 全量评估版: 应用翻转后用 simulate_route_energy 全量重算 (O(n))."""
+    new_seq = sequence[:i + 1] + sequence[i + 1:j + 1][::-1] + sequence[j + 1:]
+    _, _, new_equiv, _, _, feasible, _ = simulate_route_energy(
+        new_seq, targets_map, home, drone
+    )
+    if feasible and new_equiv < current_total_equiv - 1e-10:
+        return new_seq, new_equiv
+    return None
+
+
+def _try_or_opt_move_full(
+    sequence: list[str],
+    seg_start: int,
+    seg_end: int,
+    insert_pos: int,
+    targets_map: dict[str, Target],
+    home: GeoPoint,
+    drone: DroneSpec,
+    current_total_equiv: float,
+) -> tuple[list[str], float] | None:
+    """Or-opt 全量评估版: 应用移动后用 simulate_route_energy 全量重算 (O(n))."""
+    seg = sequence[seg_start:seg_end]
+    if insert_pos < seg_start:
+        new_seq = (
+            sequence[:insert_pos + 1]
+            + seg
+            + sequence[insert_pos + 1:seg_start]
+            + sequence[seg_end:]
+        )
+    else:
+        new_seq = (
+            sequence[:seg_start]
+            + sequence[seg_end:insert_pos + 1]
+            + seg
+            + sequence[insert_pos + 1:]
+        )
+    if new_seq == sequence:
+        return None
+    _, _, new_equiv, _, _, feasible, _ = simulate_route_energy(
+        new_seq, targets_map, home, drone
+    )
+    if feasible and new_equiv < current_total_equiv - 1e-10:
+        return new_seq, new_equiv
+    return None
+
+
 # --- 搜索循环 ---
 
 def local_search_2opt(
@@ -714,6 +776,7 @@ def local_search_2opt(
     home: GeoPoint,
     drone: DroneSpec,
     max_iterations: int = 100,
+    full_eval: bool = False,
 ) -> RoutePlan:
     """2-opt 局部搜索 — first-improvement 策略.
 
@@ -734,6 +797,8 @@ def local_search_2opt(
         home: 仓库位置
         drone: 无人机规格
         max_iterations: 最大外层迭代次数
+        full_eval: True 时每个候选移动全量重算 (O(n), 供增量 vs 全量
+                   速度对比, W5 材料); 默认 False = 增量评估 (专利创新点 3)
 
     Returns:
         RoutePlan: 改进后的路线
@@ -755,10 +820,16 @@ def local_search_2opt(
 
         for i in range(n - 1):
             for j in range(i + 1, n):
-                result = _try_2opt_move(
-                    sequence, i, j, targets_map, home, drone,
-                    total_demand, current_total_equiv,
-                )
+                if full_eval:
+                    result = _try_2opt_move_full(
+                        sequence, i, j, targets_map, home, drone,
+                        current_total_equiv,
+                    )
+                else:
+                    result = _try_2opt_move(
+                        sequence, i, j, targets_map, home, drone,
+                        total_demand, current_total_equiv,
+                    )
                 if result is not None:
                     sequence, current_total_equiv = result
                     improved = True
@@ -776,6 +847,7 @@ def local_search_or_opt(
     drone: DroneSpec,
     max_segment_size: int = 3,
     max_iterations: int = 100,
+    full_eval: bool = False,
 ) -> RoutePlan:
     """Or-opt 局部搜索 — first-improvement 策略.
 
@@ -796,6 +868,8 @@ def local_search_or_opt(
         drone: 无人机规格
         max_segment_size: 最大移动段长度 (默认 3)
         max_iterations: 最大外层迭代次数
+        full_eval: True 时每个候选移动全量重算 (O(n), 供增量 vs 全量
+                   速度对比, W5 材料); 默认 False = 增量评估 (专利创新点 3)
 
     Returns:
         RoutePlan: 改进后的路线
@@ -823,11 +897,18 @@ def local_search_or_opt(
                 for insert_pos in range(n - seg_len + 1):
                     if seg_start <= insert_pos < seg_end:
                         continue
-                    result = _try_or_opt_move(
-                        sequence, seg_start, seg_end, insert_pos,
-                        targets_map, home, drone,
-                        total_demand, current_total_equiv,
-                    )
+                    if full_eval:
+                        result = _try_or_opt_move_full(
+                            sequence, seg_start, seg_end, insert_pos,
+                            targets_map, home, drone,
+                            current_total_equiv,
+                        )
+                    else:
+                        result = _try_or_opt_move(
+                            sequence, seg_start, seg_end, insert_pos,
+                            targets_map, home, drone,
+                            total_demand, current_total_equiv,
+                        )
                     if result is not None:
                         sequence, current_total_equiv = result
                         improved = True
@@ -847,6 +928,7 @@ def local_search_vnd(
     drone: DroneSpec,
     max_iterations: int = 100,
     max_segment_size: int = 3,
+    full_eval: bool = False,
 ) -> RoutePlan:
     """Variable Neighborhood Descent — 2-opt + Or-opt 交替搜索.
 
@@ -865,6 +947,8 @@ def local_search_vnd(
         drone: 无人机规格
         max_iterations: 最大 VND 外层迭代次数
         max_segment_size: Or-opt 最大移动段长度
+        full_eval: True 时全部候选移动全量重算 (O(n), 供增量 vs 全量
+                   速度对比, W5 材料); 默认 False = 增量评估 (专利创新点 3)
 
     Returns:
         RoutePlan: 改进后的路线
@@ -881,7 +965,10 @@ def local_search_vnd(
         iteration += 1
 
         # Phase 1: 2-opt
-        candidate = local_search_2opt(current, targets_map, home, drone, max_iterations=100)
+        candidate = local_search_2opt(
+            current, targets_map, home, drone,
+            max_iterations=100, full_eval=full_eval,
+        )
         if (candidate.feasible and
                 candidate.total_equiv_distance < current.total_equiv_distance - 1e-10):
             current = candidate
@@ -891,6 +978,7 @@ def local_search_vnd(
         candidate = local_search_or_opt(
             current, targets_map, home, drone,
             max_segment_size=max_segment_size, max_iterations=100,
+            full_eval=full_eval,
         )
         if (candidate.feasible and
                 candidate.total_equiv_distance < current.total_equiv_distance - 1e-10):

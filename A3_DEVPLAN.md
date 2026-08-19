@@ -181,10 +181,12 @@
 > 所需的量化材料（尽量准备充分，但只做必要的实验，不做论文级深化），
 > W12 撰写，W13 定稿。
 
-### W10: 材料完善
+### W10: 材料完善（两项已提前至 8/19 完成 ✅）
 
-- [ ] 自建 20 点补进指标表（实施例要求 5/10/20 点，W5 只到 15）
-- [ ] 增量评估量化: 增量 vs 全量评估的速度对比（创新点 3 的实施例支撑，约半天）
+- [x] 自建 20 点补进指标表 — 指标表现含 5/10/15/20 共 93 实例
+      （circle_20p 几何 gap=0.00, random_20p 能量 gap 多为负）
+- [x] 增量评估量化: 增量 vs 全量评估的速度对比 — 实测 9 实例平均加速比 **3.0×**
+      （2.3-3.2×，与理论 O(n)/O(k) k≈n/3 一致），解质量 100% 一致
 - [ ] 时间窗支持（进阶，不做）
 
 ### W11: 材料完善
@@ -227,7 +229,12 @@
 
 **新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
 
-**W5 完成项 (8/18)**:
+**W5 完成项 (8/18) + 材料完善 (8/19)**:
+  - `heuristic.py`: `local_search_2opt/or_opt/vnd` 增加 `full_eval` 参数 (默认 False)
+    + `_try_2opt_move_full/_try_or_opt_move_full` — 增量 vs 全量速度对比对照组
+  - `benchmark.py`: 新增第 4 节"增量 vs 全量评估" — 实测加速比 3.0×, 解质量 100% 一致
+  - benchmark 扩至 5/10/15/20 点 × 10 种子 + tight + Solomon = **93 实例**
+  - 消融扩至 n=20: random_20p 忽略耦合 +14.6%, 仅 NN +5.2% (规模越大贡献越显著)
   - `exact.py`: `solve_tsp_exact_cpsat()` — OR-Tools CP-SAT 精确 TSP (n≤20, num_workers=1 确定性)
   - `exact.py`: `solve_tsp_exact_dp()` — Held-Karp DP (n≤15, 验证 CP-SAT 用)
   - `exact.py`: `solve_energy_exact_dp()` — 能量感知精确 DP (状态相关边权, n≤15)

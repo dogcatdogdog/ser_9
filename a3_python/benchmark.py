@@ -263,12 +263,10 @@ def _run_ablation_on_instances(
 ) -> dict:
     """在基准实例集上跑消融矩阵, 按规模分组聚合."""
     from .ablation import aggregate_stats, run_ablation
-    from .exact import MAX_DP_POINTS
 
-    # 消融用 ≤15 点自建实例 (standard 机型; Solomon n20 超出 DP 范围单独验收)
+    # 自建实例 (standard 机型; Solomon 用 heavy 机型且 fixture 单独验收, 不混入)
     small = [(name, targets, home) for name, targets, home, _ in instances
-             if name.split("_")[0] in SELF_DISTRIBUTIONS
-             and len(targets) <= MAX_DP_POINTS]
+             if name.split("_")[0] in SELF_DISTRIBUTIONS]
     results = run_ablation(small, DRONE_PRESETS["standard"])
 
     def group_fn(name: str) -> str:
@@ -277,6 +275,85 @@ def _run_ablation_on_instances(
         return f"{parts[0]}_{parts[1]}"
 
     return aggregate_stats(results, group_fn)
+
+
+# === 增量 vs 全量评估速度对比 (W5 材料: 创新点 3 量化) ===
+
+def _run_eval_strategy_comparison(
+    instances: list[tuple[str, list, GeoPoint, DroneSpec]],
+) -> list[dict]:
+    """增量评估 vs 全量评估: 同一实例同一搜索, 对比耗时与解成本.
+
+    子集 = 每个 (分布, 规模) 前 2 个实例 (n≥10) + Solomon 3 个, 共 15 实例,
+    控制全量评估 (O(n)/候选移动) 的运行时间。
+
+    Returns:
+        [{instance, n, inc_ms, full_ms, speedup, inc_equiv, full_equiv,
+          cost_ratio_pct, both_feasible}]
+    """
+    from .heuristic import construct_nn, local_search_vnd
+
+    # 子集选择
+    seen: set[str] = set()
+    subset: list[tuple[str, list, GeoPoint, DroneSpec]] = []
+    for name, targets, home, drone in instances:
+        parts = name.split("_")
+        if parts[0] in SELF_DISTRIBUTIONS and len(targets) >= 10:
+            key = f"{parts[0]}_{parts[1]}"
+            if key in seen:
+                continue
+            seen.add(key)
+            subset.append((name, targets, home, drone))
+        elif parts[0] == "solomon":
+            subset.append((name, targets, home, drone))
+
+    rows: list[dict] = []
+    for name, targets, home, drone in subset:
+        targets_map = {t.id: t for t in targets}
+        initial = construct_nn(targets, home, drone)
+        if not initial.feasible:
+            continue
+
+        t0 = time.perf_counter()
+        inc = local_search_vnd(initial, targets_map, home, drone, max_iterations=20)
+        inc_ms = (time.perf_counter() - t0) * 1000
+
+        t0 = time.perf_counter()
+        full = local_search_vnd(initial, targets_map, home, drone,
+                                max_iterations=20, full_eval=True)
+        full_ms = (time.perf_counter() - t0) * 1000
+
+        rows.append({
+            "instance": name,
+            "n": len(targets),
+            "inc_ms": round(inc_ms, 2),
+            "full_ms": round(full_ms, 2),
+            "speedup": round(full_ms / max(inc_ms, 1e-6), 1),
+            "inc_equiv": round(inc.total_equiv_distance, 2),
+            "full_equiv": round(full.total_equiv_distance, 2),
+            "cost_ratio_pct": round(
+                full.total_equiv_distance / max(inc.total_equiv_distance, 1e-9) * 100, 3),
+            "both_feasible": inc.feasible and full.feasible,
+        })
+    return rows
+
+
+def _format_speed_md(rows: list[dict]) -> str:
+    """增量 vs 全量速度对比表 (markdown)"""
+    lines = ["| Instance | N | 增量(ms) | 全量(ms) | 加速比 | 成本比% | Feas |",
+             "|---|---|---|---|---|---|---|"]
+    for r in rows:
+        lines.append(
+            f"| {r['instance']} | {r['n']} | {r['inc_ms']:.2f} | "
+            f"{r['full_ms']:.2f} | {r['speedup']:.1f}× | "
+            f"{r['cost_ratio_pct']:.2f}% | "
+            f"{'✓' if r['both_feasible'] else '✗'} |"
+        )
+    if rows:
+        mean_speedup = sum(r["speedup"] for r in rows) / len(rows)
+        lines.append(f"\n**平均加速比: {mean_speedup:.1f}×** "
+                     f"(成本比 ≈100% = 解质量一致)")
+    return "\n".join(lines)
 
 
 # === 表格输出 ===
@@ -410,6 +487,10 @@ def run_benchmark(
     print(f"\n[benchmark] 消融实验 ({len(ABLATION_VARIANTS)} 变体)...")
     ablation = _run_ablation_on_instances(instances)
 
+    # 增量 vs 全量评估速度对比 (创新点 3 量化)
+    print("\n[benchmark] 增量 vs 全量评估速度对比...")
+    speed_rows = _run_eval_strategy_comparison(instances)
+
     # 聚合
     meta = {
         "generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
@@ -422,6 +503,7 @@ def run_benchmark(
             "gap_eng% = (our_equiv − opt_geo序列在能量模型下成本)/该成本 — 同目标公平比较 (可为负: 我们更优)",
             "gap_eng_opt% = vs 能量感知 DP 精确最优 (≤15 点, 仅当最优序列电池可行)",
             "Opt_bat/PyVRP_bat = 基线路线在真实电量模型下的可行性 (✗ = 会坠机)",
+            "eval_strategy = 增量 vs 全量评估速度对比 (专利创新点 3): speedup = 全量耗时/增量耗时, cost_ratio ≈100% 表示解质量一致",
         ],
     }
     scaling = {"point_counts": point_counts, "num_runs": num_runs}
@@ -432,7 +514,8 @@ def run_benchmark(
         for variant, inst_map in ablation.items()
     }
     payload = {"meta": meta, "instances": rows,
-               "ablation": ablation_json, "scaling": scaling}
+               "ablation": ablation_json, "scaling": scaling,
+               "eval_strategy": speed_rows}
 
     # 输出文件
     os.makedirs(output_dir, exist_ok=True)
@@ -453,6 +536,10 @@ def run_benchmark(
         f.write("\n\n## 3. 规模扩展时间曲线\n\n")
         f.write("> 注: CP-SAT/PyVRP 单实例耗时见 JSON 全量数据\n\n")
         f.write(_format_scaling_md(rows))
+        f.write("\n\n## 4. 增量 vs 全量评估速度对比 (专利创新点 3)\n\n")
+        f.write("> 同一实例同一搜索 (NN+VND), 仅候选移动评估方式不同: "
+                "增量 O(k) vs 全量 O(n)\n\n")
+        f.write(_format_speed_md(speed_rows))
         f.write("\n\n## 口径说明\n\n")
         for note in meta["notes"]:
             f.write(f"- {note}\n")
