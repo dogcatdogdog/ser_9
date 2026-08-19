@@ -13,6 +13,7 @@
       "PowerShell(python -c *)",
       "PowerShell(where.exe *)",
       "PowerShell(& \"D:\\ser_9\\env312\\python.exe\" *)",
+      "PowerShell($env:PYTHONIOENCODING=*)",
       "PowerShell(Set-Location *)",
       "PowerShell(Copy-Item *)",
       "PowerShell(Get-Content *)",
