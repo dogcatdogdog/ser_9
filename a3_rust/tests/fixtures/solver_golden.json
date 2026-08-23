@@ -1,0 +1,2038 @@
+{
+ "instances": [
+  {
+   "fixture": "custom_5_heavy.json",
+   "home": {
+    "x": 0.0,
+    "y": 0.0
+   },
+   "drone": {
+    "payload_capacity": 500.0,
+    "battery_capacity": 100000.0,
+    "alpha": 0.08,
+    "beta": 0.002
+   },
+   "targets": [
+    {
+     "id": "H1",
+     "location": {
+      "x": 100.0,
+      "y": 0.0
+     },
+     "demand": 8.0
+    },
+    {
+     "id": "H2",
+     "location": {
+      "x": 0.0,
+      "y": 100.0
+     },
+     "demand": 7.0
+    },
+    {
+     "id": "H3",
+     "location": {
+      "x": 100.0,
+      "y": 100.0
+     },
+     "demand": 6.0
+    },
+    {
+     "id": "H4",
+     "location": {
+      "x": 200.0,
+      "y": 50.0
+     },
+     "demand": 5.0
+    },
+    {
+     "id": "H5",
+     "location": {
+      "x": 50.0,
+      "y": 200.0
+     },
+     "demand": 4.0
+    }
+   ],
+   "expected": {
+    "sequence": [
+     "H2",
+     "H5",
+     "H3",
+     "H4",
+     "H1"
+    ],
+    "segments": [
+     {
+      "from_id": "home",
+      "to_id": "H2",
+      "geo_distance": 100.0,
+      "equiv_distance": 175.0,
+      "energy_consumed": 14.0,
+      "payload_before": 30.0,
+      "payload_after": 23.0,
+      "battery_before": 100000.0,
+      "battery_after": 99986.0
+     },
+     {
+      "from_id": "H2",
+      "to_id": "H5",
+      "geo_distance": 111.8,
+      "equiv_distance": 176.09,
+      "energy_consumed": 14.09,
+      "payload_before": 23.0,
+      "payload_after": 19.0,
+      "battery_before": 99986.0,
+      "battery_after": 99971.91
+     },
+     {
+      "from_id": "H5",
+      "to_id": "H3",
+      "geo_distance": 111.8,
+      "equiv_distance": 164.91,
+      "energy_consumed": 13.19,
+      "payload_before": 19.0,
+      "payload_after": 13.0,
+      "battery_before": 99971.91,
+      "battery_after": 99958.72
+     },
+     {
+      "from_id": "H3",
+      "to_id": "H4",
+      "geo_distance": 111.8,
+      "equiv_distance": 148.14,
+      "energy_consumed": 11.85,
+      "payload_before": 13.0,
+      "payload_after": 8.0,
+      "battery_before": 99958.72,
+      "battery_after": 99946.87
+     },
+     {
+      "from_id": "H4",
+      "to_id": "H1",
+      "geo_distance": 111.8,
+      "equiv_distance": 134.16,
+      "energy_consumed": 10.73,
+      "payload_before": 8.0,
+      "payload_after": 0.0,
+      "battery_before": 99946.87,
+      "battery_after": 99936.14
+     },
+     {
+      "from_id": "H1",
+      "to_id": "home",
+      "geo_distance": 100.0,
+      "equiv_distance": 100.0,
+      "energy_consumed": 8.0,
+      "payload_before": 0.0,
+      "payload_after": 0.0,
+      "battery_before": 99936.14,
+      "battery_after": 99928.14
+     }
+    ],
+    "total_geo_distance": 647.21,
+    "total_equiv_distance": 898.3,
+    "total_energy_consumed": 71.86,
+    "remaining_energy": 99928.14,
+    "total_payload_delivered": 30.0,
+    "feasible": true,
+    "warnings": []
+   }
+  },
+  {
+   "fixture": "custom_10_tight.json",
+   "home": {
+    "x": 0.0,
+    "y": 0.0
+   },
+   "drone": {
+    "payload_capacity": 500.0,
+    "battery_capacity": 100000.0,
+    "alpha": 0.08,
+    "beta": 0.002
+   },
+   "targets": [
+    {
+     "id": "T1",
+     "location": {
+      "x": 500.0,
+      "y": 0.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T2",
+     "location": {
+      "x": 0.0,
+      "y": 500.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T3",
+     "location": {
+      "x": 500.0,
+      "y": 500.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T4",
+     "location": {
+      "x": 1000.0,
+      "y": 100.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T5",
+     "location": {
+      "x": 100.0,
+      "y": 1000.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T6",
+     "location": {
+      "x": 1000.0,
+      "y": 1000.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T7",
+     "location": {
+      "x": 1500.0,
+      "y": 200.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T8",
+     "location": {
+      "x": 200.0,
+      "y": 1500.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T9",
+     "location": {
+      "x": 1500.0,
+      "y": 1500.0
+     },
+     "demand": 0.5
+    },
+    {
+     "id": "T10",
+     "location": {
+      "x": 2000.0,
+      "y": 0.0
+     },
+     "demand": 0.5
+    }
+   ],
+   "expected": {
+    "sequence": [
+     "T1",
+     "T3",
+     "T4",
+     "T7",
+     "T10",
+     "T9",
+     "T6",
+     "T8",
+     "T5",
+     "T2"
+    ],
+    "segments": [
+     {
+      "from_id": "home",
+      "to_id": "T1",
+      "geo_distance": 500.0,
+      "equiv_distance": 562.5,
+      "energy_consumed": 45.0,
+      "payload_before": 5.0,
+      "payload_after": 4.5,
+      "battery_before": 100000.0,
+      "battery_after": 99955.0
+     },
+     {
+      "from_id": "T1",
+      "to_id": "T3",
+      "geo_distance": 500.0,
+      "equiv_distance": 556.25,
+      "energy_consumed": 44.5,
+      "payload_before": 4.5,
+      "payload_after": 4.0,
+      "battery_before": 99955.0,
+      "battery_after": 99910.5
+     },
+     {
+      "from_id": "T3",
+      "to_id": "T4",
+      "geo_distance": 640.31,
+      "equiv_distance": 704.34,
+      "energy_consumed": 56.35,
+      "payload_before": 4.0,
+      "payload_after": 3.5,
+      "battery_before": 99910.5,
+      "battery_after": 99854.15
+     },
+     {
+      "from_id": "T4",
+      "to_id": "T7",
+      "geo_distance": 509.9,
+      "equiv_distance": 554.52,
+      "energy_consumed": 44.36,
+      "payload_before": 3.5,
+      "payload_after": 3.0,
+      "battery_before": 99854.15,
+      "battery_after": 99809.79
+     },
+     {
+      "from_id": "T7",
+      "to_id": "T10",
+      "geo_distance": 538.52,
+      "equiv_distance": 578.91,
+      "energy_consumed": 46.31,
+      "payload_before": 3.0,
+      "payload_after": 2.5,
+      "battery_before": 99809.79,
+      "battery_after": 99763.48
+     },
+     {
+      "from_id": "T10",
+      "to_id": "T9",
+      "geo_distance": 1581.14,
+      "equiv_distance": 1679.96,
+      "energy_consumed": 134.4,
+      "payload_before": 2.5,
+      "payload_after": 2.0,
+      "battery_before": 99763.48,
+      "battery_after": 99629.08
+     },
+     {
+      "from_id": "T9",
+      "to_id": "T6",
+      "geo_distance": 707.11,
+      "equiv_distance": 742.46,
+      "energy_consumed": 59.4,
+      "payload_before": 2.0,
+      "payload_after": 1.5,
+      "battery_before": 99629.08,
+      "battery_after": 99569.68
+     },
+     {
+      "from_id": "T6",
+      "to_id": "T8",
+      "geo_distance": 943.4,
+      "equiv_distance": 978.78,
+      "energy_consumed": 78.3,
+      "payload_before": 1.5,
+      "payload_after": 1.0,
+      "battery_before": 99569.68,
+      "battery_after": 99491.38
+     },
+     {
+      "from_id": "T8",
+      "to_id": "T5",
+      "geo_distance": 509.9,
+      "equiv_distance": 522.65,
+      "energy_consumed": 41.81,
+      "payload_before": 1.0,
+      "payload_after": 0.5,
+      "battery_before": 99491.38,
+      "battery_after": 99449.57
+     },
+     {
+      "from_id": "T5",
+      "to_id": "T2",
+      "geo_distance": 509.9,
+      "equiv_distance": 516.28,
+      "energy_consumed": 41.3,
+      "payload_before": 0.5,
+      "payload_after": 0.0,
+      "battery_before": 99449.57,
+      "battery_after": 99408.27
+     },
+     {
+      "from_id": "T2",
+      "to_id": "home",
+      "geo_distance": 500.0,
+      "equiv_distance": 500.0,
+      "energy_consumed": 40.0,
+      "payload_before": 0.0,
+      "payload_after": 0.0,
+      "battery_before": 99408.27,
+      "battery_after": 99368.27
+     }
+    ],
+    "total_geo_distance": 7440.18,
+    "total_equiv_distance": 7896.64,
+    "total_energy_consumed": 631.73,
+    "remaining_energy": 99368.27,
+    "total_payload_delivered": 5.0,
+    "feasible": true,
+    "warnings": []
+   }
+  },
+  {
+   "fixture": "custom_15_mixed.json",
+   "home": {
+    "x": 0.0,
+    "y": 0.0
+   },
+   "drone": {
+    "payload_capacity": 500.0,
+    "battery_capacity": 100000.0,
+    "alpha": 0.08,
+    "beta": 0.002
+   },
+   "targets": [
+    {
+     "id": "X01",
+     "location": {
+      "x": 30.0,
+      "y": 40.0
+     },
+     "demand": 2.0
+    },
+    {
+     "id": "X02",
+     "location": {
+      "x": 60.0,
+      "y": 30.0
+     },
+     "demand": 3.0
+    },
+    {
+     "id": "X03",
+     "location": {
+      "x": 90.0,
+      "y": 20.0
+     },
+     "demand": 2.0
+    },
+    {
+     "id": "X04",
+     "location": {
+      "x": 20.0,
+      "y": 70.0
+     },
+     "demand": 4.0
+    },
+    {
+     "id": "X05",
+     "location": {
+      "x": 50.0,
+      "y": 80.0
+     },
+     "demand": 2.0
+    },
+    {
+     "id": "X06",
+     "location": {
+      "x": 80.0,
+      "y": 60.0
+     },
+     "demand": 3.0
+    },
+    {
+     "id": "X07",
+     "location": {
+      "x": 110.0,
+      "y": 50.0
+     },
+     "demand": 2.0
+    },
+    {
+     "id": "X08",
+     "location": {
+      "x": 40.0,
+      "y": 100.0
+     },
+     "demand": 3.0
+    },
+    {
+     "id": "X09",
+     "location": {
+      "x": 70.0,
+      "y": 110.0
+     },
+     "demand": 2.0
+    },
+    {
+     "id": "X10",
+     "location": {
+      "x": 100.0,
+      "y": 90.0
+     },
+     "demand": 4.0
+    },
+    {
+     "id": "X11",
+     "location": {
+      "x": 130.0,
+      "y": 80.0
+     },
+     "demand": 2.0
+    },
+    {
+     "id": "X12",
+     "location": {
+      "x": 10.0,
+      "y": 120.0
+     },
+     "demand": 3.0
+    },
+    {
+     "id": "X13",
+     "location": {
+      "x": 50.0,
+      "y": 130.0
+     },
+     "demand": 2.0
+    },
+    {
+     "id": "X14",
+     "location": {
+      "x": 90.0,
+      "y": 140.0
+     },
+     "demand": 1.0
+    },
+    {
+     "id": "X15",
+     "location": {
+      "x": 120.0,
+      "y": 120.0
+     },
+     "demand": 1.0
+    }
+   ],
+   "expected": {
+    "sequence": [
+     "X02",
+     "X03",
+     "X06",
+     "X07",
+     "X11",
+     "X10",
+     "X15",
+     "X14",
+     "X09",
+     "X13",
+     "X12",
+     "X08",
+     "X05",
+     "X04",
+     "X01"
+    ],
+    "segments": [
+     {
+      "from_id": "home",
+      "to_id": "X02",
+      "geo_distance": 67.08,
+      "equiv_distance": 127.46,
+      "energy_consumed": 10.2,
+      "payload_before": 36.0,
+      "payload_after": 33.0,
+      "battery_before": 100000.0,
+      "battery_after": 99989.8
+     },
+     {
+      "from_id": "X02",
+      "to_id": "X03",
+      "geo_distance": 31.62,
+      "equiv_distance": 57.71,
+      "energy_consumed": 4.62,
+      "payload_before": 33.0,
+      "payload_after": 31.0,
+      "battery_before": 99989.8,
+      "battery_after": 99985.19
+     },
+     {
+      "from_id": "X03",
+      "to_id": "X06",
+      "geo_distance": 41.23,
+      "equiv_distance": 73.19,
+      "energy_consumed": 5.85,
+      "payload_before": 31.0,
+      "payload_after": 28.0,
+      "battery_before": 99985.19,
+      "battery_after": 99979.33
+     },
+     {
+      "from_id": "X06",
+      "to_id": "X07",
+      "geo_distance": 31.62,
+      "equiv_distance": 53.76,
+      "energy_consumed": 4.3,
+      "payload_before": 28.0,
+      "payload_after": 26.0,
+      "battery_before": 99979.33,
+      "battery_after": 99975.03
+     },
+     {
+      "from_id": "X07",
+      "to_id": "X11",
+      "geo_distance": 36.06,
+      "equiv_distance": 59.49,
+      "energy_consumed": 4.76,
+      "payload_before": 26.0,
+      "payload_after": 24.0,
+      "battery_before": 99975.03,
+      "battery_after": 99970.27
+     },
+     {
+      "from_id": "X11",
+      "to_id": "X10",
+      "geo_distance": 31.62,
+      "equiv_distance": 50.6,
+      "energy_consumed": 4.05,
+      "payload_before": 24.0,
+      "payload_after": 20.0,
+      "battery_before": 99970.27,
+      "battery_after": 99966.22
+     },
+     {
+      "from_id": "X10",
+      "to_id": "X15",
+      "geo_distance": 36.06,
+      "equiv_distance": 54.08,
+      "energy_consumed": 4.33,
+      "payload_before": 20.0,
+      "payload_after": 19.0,
+      "battery_before": 99966.22,
+      "battery_after": 99961.9
+     },
+     {
+      "from_id": "X15",
+      "to_id": "X14",
+      "geo_distance": 36.06,
+      "equiv_distance": 53.18,
+      "energy_consumed": 4.25,
+      "payload_before": 19.0,
+      "payload_after": 18.0,
+      "battery_before": 99961.9,
+      "battery_after": 99957.64
+     },
+     {
+      "from_id": "X14",
+      "to_id": "X09",
+      "geo_distance": 36.06,
+      "equiv_distance": 52.28,
+      "energy_consumed": 4.18,
+      "payload_before": 18.0,
+      "payload_after": 16.0,
+      "battery_before": 99957.64,
+      "battery_after": 99953.46
+     },
+     {
+      "from_id": "X09",
+      "to_id": "X13",
+      "geo_distance": 28.28,
+      "equiv_distance": 39.6,
+      "energy_consumed": 3.17,
+      "payload_before": 16.0,
+      "payload_after": 14.0,
+      "battery_before": 99953.46,
+      "battery_after": 99950.29
+     },
+     {
+      "from_id": "X13",
+      "to_id": "X12",
+      "geo_distance": 41.23,
+      "equiv_distance": 55.66,
+      "energy_consumed": 4.45,
+      "payload_before": 14.0,
+      "payload_after": 11.0,
+      "battery_before": 99950.29,
+      "battery_after": 99945.84
+     },
+     {
+      "from_id": "X12",
+      "to_id": "X08",
+      "geo_distance": 36.06,
+      "equiv_distance": 45.97,
+      "energy_consumed": 3.68,
+      "payload_before": 11.0,
+      "payload_after": 8.0,
+      "battery_before": 99945.84,
+      "battery_after": 99942.16
+     },
+     {
+      "from_id": "X08",
+      "to_id": "X05",
+      "geo_distance": 22.36,
+      "equiv_distance": 26.83,
+      "energy_consumed": 2.15,
+      "payload_before": 8.0,
+      "payload_after": 6.0,
+      "battery_before": 99942.16,
+      "battery_after": 99940.02
+     },
+     {
+      "from_id": "X05",
+      "to_id": "X04",
+      "geo_distance": 31.62,
+      "equiv_distance": 36.37,
+      "energy_consumed": 2.91,
+      "payload_before": 6.0,
+      "payload_after": 2.0,
+      "battery_before": 99940.02,
+      "battery_after": 99937.11
+     },
+     {
+      "from_id": "X04",
+      "to_id": "X01",
+      "geo_distance": 31.62,
+      "equiv_distance": 33.2,
+      "energy_consumed": 2.66,
+      "payload_before": 2.0,
+      "payload_after": 0.0,
+      "battery_before": 99937.11,
+      "battery_after": 99934.45
+     },
+     {
+      "from_id": "X01",
+      "to_id": "home",
+      "geo_distance": 50.0,
+      "equiv_distance": 50.0,
+      "energy_consumed": 4.0,
+      "payload_before": 0.0,
+      "payload_after": 0.0,
+      "battery_before": 99934.45,
+      "battery_after": 99930.45
+     }
+    ],
+    "total_geo_distance": 588.58,
+    "total_equiv_distance": 869.38,
+    "total_energy_consumed": 69.55,
+    "remaining_energy": 99930.45,
+    "total_payload_delivered": 36.0,
+    "feasible": true,
+    "warnings": []
+   }
+  },
+  {
+   "fixture": "solomon_r101_n20.json",
+   "home": {
+    "x": 35.0,
+    "y": 35.0
+   },
+   "drone": {
+    "payload_capacity": 500.0,
+    "battery_capacity": 100000.0,
+    "alpha": 0.08,
+    "beta": 0.002
+   },
+   "targets": [
+    {
+     "id": "R10101",
+     "location": {
+      "x": 41.0,
+      "y": 49.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "R10102",
+     "location": {
+      "x": 35.0,
+      "y": 17.0
+     },
+     "demand": 7.0
+    },
+    {
+     "id": "R10103",
+     "location": {
+      "x": 55.0,
+      "y": 45.0
+     },
+     "demand": 13.0
+    },
+    {
+     "id": "R10104",
+     "location": {
+      "x": 55.0,
+      "y": 20.0
+     },
+     "demand": 19.0
+    },
+    {
+     "id": "R10105",
+     "location": {
+      "x": 15.0,
+      "y": 30.0
+     },
+     "demand": 26.0
+    },
+    {
+     "id": "R10106",
+     "location": {
+      "x": 25.0,
+      "y": 30.0
+     },
+     "demand": 3.0
+    },
+    {
+     "id": "R10107",
+     "location": {
+      "x": 20.0,
+      "y": 50.0
+     },
+     "demand": 5.0
+    },
+    {
+     "id": "R10108",
+     "location": {
+      "x": 10.0,
+      "y": 43.0
+     },
+     "demand": 9.0
+    },
+    {
+     "id": "R10109",
+     "location": {
+      "x": 55.0,
+      "y": 60.0
+     },
+     "demand": 16.0
+    },
+    {
+     "id": "R10110",
+     "location": {
+      "x": 30.0,
+      "y": 60.0
+     },
+     "demand": 16.0
+    },
+    {
+     "id": "R10111",
+     "location": {
+      "x": 20.0,
+      "y": 65.0
+     },
+     "demand": 12.0
+    },
+    {
+     "id": "R10112",
+     "location": {
+      "x": 50.0,
+      "y": 35.0
+     },
+     "demand": 19.0
+    },
+    {
+     "id": "R10113",
+     "location": {
+      "x": 30.0,
+      "y": 25.0
+     },
+     "demand": 23.0
+    },
+    {
+     "id": "R10114",
+     "location": {
+      "x": 15.0,
+      "y": 10.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "R10115",
+     "location": {
+      "x": 30.0,
+      "y": 5.0
+     },
+     "demand": 8.0
+    },
+    {
+     "id": "R10116",
+     "location": {
+      "x": 10.0,
+      "y": 20.0
+     },
+     "demand": 19.0
+    },
+    {
+     "id": "R10117",
+     "location": {
+      "x": 5.0,
+      "y": 30.0
+     },
+     "demand": 2.0
+    },
+    {
+     "id": "R10118",
+     "location": {
+      "x": 20.0,
+      "y": 40.0
+     },
+     "demand": 12.0
+    },
+    {
+     "id": "R10119",
+     "location": {
+      "x": 15.0,
+      "y": 60.0
+     },
+     "demand": 17.0
+    },
+    {
+     "id": "R10120",
+     "location": {
+      "x": 45.0,
+      "y": 65.0
+     },
+     "demand": 9.0
+    }
+   ],
+   "expected": {
+    "sequence": [
+     "R10113",
+     "R10106",
+     "R10105",
+     "R10118",
+     "R10107",
+     "R10119",
+     "R10111",
+     "R10110",
+     "R10120",
+     "R10109",
+     "R10103",
+     "R10112",
+     "R10104",
+     "R10102",
+     "R10115",
+     "R10114",
+     "R10116",
+     "R10117",
+     "R10108",
+     "R10101"
+    ],
+    "segments": [
+     {
+      "from_id": "home",
+      "to_id": "R10113",
+      "geo_distance": 11.18,
+      "equiv_distance": 85.25,
+      "energy_consumed": 6.82,
+      "payload_before": 265.0,
+      "payload_after": 242.0,
+      "battery_before": 100000.0,
+      "battery_after": 99993.18
+     },
+     {
+      "from_id": "R10113",
+      "to_id": "R10106",
+      "geo_distance": 7.07,
+      "equiv_distance": 49.85,
+      "energy_consumed": 3.99,
+      "payload_before": 242.0,
+      "payload_after": 239.0,
+      "battery_before": 99993.18,
+      "battery_after": 99989.19
+     },
+     {
+      "from_id": "R10106",
+      "to_id": "R10105",
+      "geo_distance": 10.0,
+      "equiv_distance": 69.75,
+      "energy_consumed": 5.58,
+      "payload_before": 239.0,
+      "payload_after": 213.0,
+      "battery_before": 99989.19,
+      "battery_after": 99983.61
+     },
+     {
+      "from_id": "R10105",
+      "to_id": "R10118",
+      "geo_distance": 11.18,
+      "equiv_distance": 70.72,
+      "energy_consumed": 5.66,
+      "payload_before": 213.0,
+      "payload_after": 201.0,
+      "battery_before": 99983.61,
+      "battery_after": 99977.95
+     },
+     {
+      "from_id": "R10118",
+      "to_id": "R10107",
+      "geo_distance": 10.0,
+      "equiv_distance": 60.25,
+      "energy_consumed": 4.82,
+      "payload_before": 201.0,
+      "payload_after": 196.0,
+      "battery_before": 99977.95,
+      "battery_after": 99973.13
+     },
+     {
+      "from_id": "R10107",
+      "to_id": "R10119",
+      "geo_distance": 11.18,
+      "equiv_distance": 65.96,
+      "energy_consumed": 5.28,
+      "payload_before": 196.0,
+      "payload_after": 179.0,
+      "battery_before": 99973.13,
+      "battery_after": 99967.86
+     },
+     {
+      "from_id": "R10119",
+      "to_id": "R10111",
+      "geo_distance": 7.07,
+      "equiv_distance": 38.71,
+      "energy_consumed": 3.1,
+      "payload_before": 179.0,
+      "payload_after": 167.0,
+      "battery_before": 99967.86,
+      "battery_after": 99964.76
+     },
+     {
+      "from_id": "R10111",
+      "to_id": "R10110",
+      "geo_distance": 11.18,
+      "equiv_distance": 57.86,
+      "energy_consumed": 4.63,
+      "payload_before": 167.0,
+      "payload_after": 151.0,
+      "battery_before": 99964.76,
+      "battery_after": 99960.13
+     },
+     {
+      "from_id": "R10110",
+      "to_id": "R10120",
+      "geo_distance": 15.81,
+      "equiv_distance": 75.5,
+      "energy_consumed": 6.04,
+      "payload_before": 151.0,
+      "payload_after": 142.0,
+      "battery_before": 99960.13,
+      "battery_after": 99954.09
+     },
+     {
+      "from_id": "R10120",
+      "to_id": "R10109",
+      "geo_distance": 11.18,
+      "equiv_distance": 50.87,
+      "energy_consumed": 4.07,
+      "payload_before": 142.0,
+      "payload_after": 126.0,
+      "battery_before": 99954.09,
+      "battery_after": 99950.02
+     },
+     {
+      "from_id": "R10109",
+      "to_id": "R10103",
+      "geo_distance": 15.0,
+      "equiv_distance": 62.25,
+      "energy_consumed": 4.98,
+      "payload_before": 126.0,
+      "payload_after": 113.0,
+      "battery_before": 99950.02,
+      "battery_after": 99945.04
+     },
+     {
+      "from_id": "R10103",
+      "to_id": "R10112",
+      "geo_distance": 11.18,
+      "equiv_distance": 42.76,
+      "energy_consumed": 3.42,
+      "payload_before": 113.0,
+      "payload_after": 94.0,
+      "battery_before": 99945.04,
+      "battery_after": 99941.62
+     },
+     {
+      "from_id": "R10112",
+      "to_id": "R10104",
+      "geo_distance": 15.81,
+      "equiv_distance": 52.97,
+      "energy_consumed": 4.24,
+      "payload_before": 94.0,
+      "payload_after": 75.0,
+      "battery_before": 99941.62,
+      "battery_after": 99937.38
+     },
+     {
+      "from_id": "R10104",
+      "to_id": "R10102",
+      "geo_distance": 20.22,
+      "equiv_distance": 58.14,
+      "energy_consumed": 4.65,
+      "payload_before": 75.0,
+      "payload_after": 68.0,
+      "battery_before": 99937.38,
+      "battery_after": 99932.73
+     },
+     {
+      "from_id": "R10102",
+      "to_id": "R10115",
+      "geo_distance": 13.0,
+      "equiv_distance": 35.1,
+      "energy_consumed": 2.81,
+      "payload_before": 68.0,
+      "payload_after": 60.0,
+      "battery_before": 99932.73,
+      "battery_after": 99929.92
+     },
+     {
+      "from_id": "R10115",
+      "to_id": "R10114",
+      "geo_distance": 15.81,
+      "equiv_distance": 39.53,
+      "energy_consumed": 3.16,
+      "payload_before": 60.0,
+      "payload_after": 40.0,
+      "battery_before": 99929.92,
+      "battery_after": 99926.76
+     },
+     {
+      "from_id": "R10114",
+      "to_id": "R10116",
+      "geo_distance": 11.18,
+      "equiv_distance": 22.36,
+      "energy_consumed": 1.79,
+      "payload_before": 40.0,
+      "payload_after": 21.0,
+      "battery_before": 99926.76,
+      "battery_after": 99924.97
+     },
+     {
+      "from_id": "R10116",
+      "to_id": "R10117",
+      "geo_distance": 11.18,
+      "equiv_distance": 17.05,
+      "energy_consumed": 1.36,
+      "payload_before": 21.0,
+      "payload_after": 19.0,
+      "battery_before": 99924.97,
+      "battery_after": 99923.61
+     },
+     {
+      "from_id": "R10117",
+      "to_id": "R10108",
+      "geo_distance": 13.93,
+      "equiv_distance": 20.54,
+      "energy_consumed": 1.64,
+      "payload_before": 19.0,
+      "payload_after": 10.0,
+      "battery_before": 99923.61,
+      "battery_after": 99921.97
+     },
+     {
+      "from_id": "R10108",
+      "to_id": "R10101",
+      "geo_distance": 31.58,
+      "equiv_distance": 39.47,
+      "energy_consumed": 3.16,
+      "payload_before": 10.0,
+      "payload_after": 0.0,
+      "battery_before": 99921.97,
+      "battery_after": 99918.81
+     },
+     {
+      "from_id": "R10101",
+      "to_id": "home",
+      "geo_distance": 15.23,
+      "equiv_distance": 15.23,
+      "energy_consumed": 1.22,
+      "payload_before": 0.0,
+      "payload_after": 0.0,
+      "battery_before": 99918.81,
+      "battery_after": 99917.59
+     }
+    ],
+    "total_geo_distance": 279.98,
+    "total_equiv_distance": 1030.13,
+    "total_energy_consumed": 82.41,
+    "remaining_energy": 99917.59,
+    "total_payload_delivered": 265.0,
+    "feasible": true,
+    "warnings": []
+   }
+  },
+  {
+   "fixture": "solomon_c101_n20.json",
+   "home": {
+    "x": 40.0,
+    "y": 50.0
+   },
+   "drone": {
+    "payload_capacity": 500.0,
+    "battery_capacity": 100000.0,
+    "alpha": 0.08,
+    "beta": 0.002
+   },
+   "targets": [
+    {
+     "id": "C10101",
+     "location": {
+      "x": 45.0,
+      "y": 68.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10102",
+     "location": {
+      "x": 45.0,
+      "y": 70.0
+     },
+     "demand": 30.0
+    },
+    {
+     "id": "C10103",
+     "location": {
+      "x": 42.0,
+      "y": 66.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10104",
+     "location": {
+      "x": 42.0,
+      "y": 68.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10105",
+     "location": {
+      "x": 42.0,
+      "y": 65.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10106",
+     "location": {
+      "x": 40.0,
+      "y": 69.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "C10107",
+     "location": {
+      "x": 40.0,
+      "y": 66.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "C10108",
+     "location": {
+      "x": 38.0,
+      "y": 68.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "C10109",
+     "location": {
+      "x": 38.0,
+      "y": 70.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10110",
+     "location": {
+      "x": 35.0,
+      "y": 66.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10111",
+     "location": {
+      "x": 35.0,
+      "y": 69.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10112",
+     "location": {
+      "x": 25.0,
+      "y": 85.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "C10113",
+     "location": {
+      "x": 22.0,
+      "y": 75.0
+     },
+     "demand": 30.0
+    },
+    {
+     "id": "C10114",
+     "location": {
+      "x": 22.0,
+      "y": 85.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10115",
+     "location": {
+      "x": 20.0,
+      "y": 80.0
+     },
+     "demand": 40.0
+    },
+    {
+     "id": "C10116",
+     "location": {
+      "x": 20.0,
+      "y": 85.0
+     },
+     "demand": 40.0
+    },
+    {
+     "id": "C10117",
+     "location": {
+      "x": 18.0,
+      "y": 75.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "C10118",
+     "location": {
+      "x": 15.0,
+      "y": 75.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "C10119",
+     "location": {
+      "x": 15.0,
+      "y": 80.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "C10120",
+     "location": {
+      "x": 30.0,
+      "y": 50.0
+     },
+     "demand": 10.0
+    }
+   ],
+   "expected": {
+    "sequence": [
+     "C10107",
+     "C10105",
+     "C10103",
+     "C10101",
+     "C10102",
+     "C10104",
+     "C10106",
+     "C10108",
+     "C10109",
+     "C10111",
+     "C10113",
+     "C10117",
+     "C10118",
+     "C10119",
+     "C10115",
+     "C10116",
+     "C10114",
+     "C10112",
+     "C10110",
+     "C10120"
+    ],
+    "segments": [
+     {
+      "from_id": "home",
+      "to_id": "C10107",
+      "geo_distance": 16.0,
+      "equiv_distance": 160.0,
+      "energy_consumed": 12.8,
+      "payload_before": 360.0,
+      "payload_after": 340.0,
+      "battery_before": 100000.0,
+      "battery_after": 99987.2
+     },
+     {
+      "from_id": "C10107",
+      "to_id": "C10105",
+      "geo_distance": 2.24,
+      "equiv_distance": 21.24,
+      "energy_consumed": 1.7,
+      "payload_before": 340.0,
+      "payload_after": 330.0,
+      "battery_before": 99987.2,
+      "battery_after": 99985.5
+     },
+     {
+      "from_id": "C10105",
+      "to_id": "C10103",
+      "geo_distance": 1.0,
+      "equiv_distance": 9.25,
+      "energy_consumed": 0.74,
+      "payload_before": 330.0,
+      "payload_after": 320.0,
+      "battery_before": 99985.5,
+      "battery_after": 99984.76
+     },
+     {
+      "from_id": "C10103",
+      "to_id": "C10101",
+      "geo_distance": 3.61,
+      "equiv_distance": 32.45,
+      "energy_consumed": 2.6,
+      "payload_before": 320.0,
+      "payload_after": 310.0,
+      "battery_before": 99984.76,
+      "battery_after": 99982.16
+     },
+     {
+      "from_id": "C10101",
+      "to_id": "C10102",
+      "geo_distance": 2.0,
+      "equiv_distance": 17.5,
+      "energy_consumed": 1.4,
+      "payload_before": 310.0,
+      "payload_after": 280.0,
+      "battery_before": 99982.16,
+      "battery_after": 99980.76
+     },
+     {
+      "from_id": "C10102",
+      "to_id": "C10104",
+      "geo_distance": 3.61,
+      "equiv_distance": 28.84,
+      "energy_consumed": 2.31,
+      "payload_before": 280.0,
+      "payload_after": 270.0,
+      "battery_before": 99980.76,
+      "battery_after": 99978.46
+     },
+     {
+      "from_id": "C10104",
+      "to_id": "C10106",
+      "geo_distance": 2.24,
+      "equiv_distance": 17.33,
+      "energy_consumed": 1.39,
+      "payload_before": 270.0,
+      "payload_after": 250.0,
+      "battery_before": 99978.46,
+      "battery_after": 99977.07
+     },
+     {
+      "from_id": "C10106",
+      "to_id": "C10108",
+      "geo_distance": 2.24,
+      "equiv_distance": 16.21,
+      "energy_consumed": 1.3,
+      "payload_before": 250.0,
+      "payload_after": 230.0,
+      "battery_before": 99977.07,
+      "battery_after": 99975.77
+     },
+     {
+      "from_id": "C10108",
+      "to_id": "C10109",
+      "geo_distance": 2.0,
+      "equiv_distance": 13.5,
+      "energy_consumed": 1.08,
+      "payload_before": 230.0,
+      "payload_after": 220.0,
+      "battery_before": 99975.77,
+      "battery_after": 99974.69
+     },
+     {
+      "from_id": "C10109",
+      "to_id": "C10111",
+      "geo_distance": 3.16,
+      "equiv_distance": 20.55,
+      "energy_consumed": 1.64,
+      "payload_before": 220.0,
+      "payload_after": 210.0,
+      "battery_before": 99974.69,
+      "battery_after": 99973.05
+     },
+     {
+      "from_id": "C10111",
+      "to_id": "C10113",
+      "geo_distance": 14.32,
+      "equiv_distance": 89.49,
+      "energy_consumed": 7.16,
+      "payload_before": 210.0,
+      "payload_after": 180.0,
+      "battery_before": 99973.05,
+      "battery_after": 99965.89
+     },
+     {
+      "from_id": "C10113",
+      "to_id": "C10117",
+      "geo_distance": 4.0,
+      "equiv_distance": 22.0,
+      "energy_consumed": 1.76,
+      "payload_before": 180.0,
+      "payload_after": 160.0,
+      "battery_before": 99965.89,
+      "battery_after": 99964.13
+     },
+     {
+      "from_id": "C10117",
+      "to_id": "C10118",
+      "geo_distance": 3.0,
+      "equiv_distance": 15.0,
+      "energy_consumed": 1.2,
+      "payload_before": 160.0,
+      "payload_after": 140.0,
+      "battery_before": 99964.13,
+      "battery_after": 99962.93
+     },
+     {
+      "from_id": "C10118",
+      "to_id": "C10119",
+      "geo_distance": 5.0,
+      "equiv_distance": 22.5,
+      "energy_consumed": 1.8,
+      "payload_before": 140.0,
+      "payload_after": 130.0,
+      "battery_before": 99962.93,
+      "battery_after": 99961.13
+     },
+     {
+      "from_id": "C10119",
+      "to_id": "C10115",
+      "geo_distance": 5.0,
+      "equiv_distance": 21.25,
+      "energy_consumed": 1.7,
+      "payload_before": 130.0,
+      "payload_after": 90.0,
+      "battery_before": 99961.13,
+      "battery_after": 99959.43
+     },
+     {
+      "from_id": "C10115",
+      "to_id": "C10116",
+      "geo_distance": 5.0,
+      "equiv_distance": 16.25,
+      "energy_consumed": 1.3,
+      "payload_before": 90.0,
+      "payload_after": 50.0,
+      "battery_before": 99959.43,
+      "battery_after": 99958.13
+     },
+     {
+      "from_id": "C10116",
+      "to_id": "C10114",
+      "geo_distance": 2.0,
+      "equiv_distance": 4.5,
+      "energy_consumed": 0.36,
+      "payload_before": 50.0,
+      "payload_after": 40.0,
+      "battery_before": 99958.13,
+      "battery_after": 99957.77
+     },
+     {
+      "from_id": "C10114",
+      "to_id": "C10112",
+      "geo_distance": 3.0,
+      "equiv_distance": 6.0,
+      "energy_consumed": 0.48,
+      "payload_before": 40.0,
+      "payload_after": 20.0,
+      "battery_before": 99957.77,
+      "battery_after": 99957.29
+     },
+     {
+      "from_id": "C10112",
+      "to_id": "C10110",
+      "geo_distance": 21.47,
+      "equiv_distance": 32.21,
+      "energy_consumed": 2.58,
+      "payload_before": 20.0,
+      "payload_after": 10.0,
+      "battery_before": 99957.29,
+      "battery_after": 99954.71
+     },
+     {
+      "from_id": "C10110",
+      "to_id": "C10120",
+      "geo_distance": 16.76,
+      "equiv_distance": 20.95,
+      "energy_consumed": 1.68,
+      "payload_before": 10.0,
+      "payload_after": 0.0,
+      "battery_before": 99954.71,
+      "battery_after": 99953.04
+     },
+     {
+      "from_id": "C10120",
+      "to_id": "home",
+      "geo_distance": 10.0,
+      "equiv_distance": 10.0,
+      "energy_consumed": 0.8,
+      "payload_before": 0.0,
+      "payload_after": 0.0,
+      "battery_before": 99953.04,
+      "battery_after": 99952.24
+     }
+    ],
+    "total_geo_distance": 127.63,
+    "total_equiv_distance": 597.03,
+    "total_energy_consumed": 47.76,
+    "remaining_energy": 99952.24,
+    "total_payload_delivered": 360.0,
+    "feasible": true,
+    "warnings": []
+   }
+  },
+  {
+   "fixture": "solomon_rc101_n20.json",
+   "home": {
+    "x": 40.0,
+    "y": 50.0
+   },
+   "drone": {
+    "payload_capacity": 500.0,
+    "battery_capacity": 100000.0,
+    "alpha": 0.08,
+    "beta": 0.002
+   },
+   "targets": [
+    {
+     "id": "RC10101",
+     "location": {
+      "x": 25.0,
+      "y": 85.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10102",
+     "location": {
+      "x": 22.0,
+      "y": 75.0
+     },
+     "demand": 30.0
+    },
+    {
+     "id": "RC10103",
+     "location": {
+      "x": 22.0,
+      "y": 85.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "RC10104",
+     "location": {
+      "x": 20.0,
+      "y": 80.0
+     },
+     "demand": 40.0
+    },
+    {
+     "id": "RC10105",
+     "location": {
+      "x": 20.0,
+      "y": 85.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10106",
+     "location": {
+      "x": 18.0,
+      "y": 75.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10107",
+     "location": {
+      "x": 15.0,
+      "y": 75.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10108",
+     "location": {
+      "x": 15.0,
+      "y": 80.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "RC10109",
+     "location": {
+      "x": 10.0,
+      "y": 35.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10110",
+     "location": {
+      "x": 10.0,
+      "y": 40.0
+     },
+     "demand": 30.0
+    },
+    {
+     "id": "RC10111",
+     "location": {
+      "x": 8.0,
+      "y": 40.0
+     },
+     "demand": 40.0
+    },
+    {
+     "id": "RC10112",
+     "location": {
+      "x": 8.0,
+      "y": 45.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10113",
+     "location": {
+      "x": 5.0,
+      "y": 35.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "RC10114",
+     "location": {
+      "x": 5.0,
+      "y": 45.0
+     },
+     "demand": 10.0
+    },
+    {
+     "id": "RC10115",
+     "location": {
+      "x": 2.0,
+      "y": 40.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10116",
+     "location": {
+      "x": 0.0,
+      "y": 40.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10117",
+     "location": {
+      "x": 0.0,
+      "y": 45.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10118",
+     "location": {
+      "x": 44.0,
+      "y": 5.0
+     },
+     "demand": 20.0
+    },
+    {
+     "id": "RC10119",
+     "location": {
+      "x": 42.0,
+      "y": 10.0
+     },
+     "demand": 40.0
+    },
+    {
+     "id": "RC10120",
+     "location": {
+      "x": 42.0,
+      "y": 15.0
+     },
+     "demand": 10.0
+    }
+   ],
+   "expected": {
+    "sequence": [
+     "RC10110",
+     "RC10111",
+     "RC10109",
+     "RC10113",
+     "RC10115",
+     "RC10116",
+     "RC10117",
+     "RC10114",
+     "RC10112",
+     "RC10107",
+     "RC10106",
+     "RC10102",
+     "RC10104",
+     "RC10101",
+     "RC10103",
+     "RC10105",
+     "RC10108",
+     "RC10120",
+     "RC10119",
+     "RC10118"
+    ],
+    "segments": [
+     {
+      "from_id": "home",
+      "to_id": "RC10110",
+      "geo_distance": 31.62,
+      "equiv_distance": 371.57,
+      "energy_consumed": 29.73,
+      "payload_before": 430.0,
+      "payload_after": 400.0,
+      "battery_before": 100000.0,
+      "battery_after": 99970.27
+     },
+     {
+      "from_id": "RC10110",
+      "to_id": "RC10111",
+      "geo_distance": 2.0,
+      "equiv_distance": 22.0,
+      "energy_consumed": 1.76,
+      "payload_before": 400.0,
+      "payload_after": 360.0,
+      "battery_before": 99970.27,
+      "battery_after": 99968.51
+     },
+     {
+      "from_id": "RC10111",
+      "to_id": "RC10109",
+      "geo_distance": 5.39,
+      "equiv_distance": 53.85,
+      "energy_consumed": 4.31,
+      "payload_before": 360.0,
+      "payload_after": 340.0,
+      "battery_before": 99968.51,
+      "battery_after": 99964.21
+     },
+     {
+      "from_id": "RC10109",
+      "to_id": "RC10113",
+      "geo_distance": 5.0,
+      "equiv_distance": 47.5,
+      "energy_consumed": 3.8,
+      "payload_before": 340.0,
+      "payload_after": 330.0,
+      "battery_before": 99964.21,
+      "battery_after": 99960.41
+     },
+     {
+      "from_id": "RC10113",
+      "to_id": "RC10115",
+      "geo_distance": 5.83,
+      "equiv_distance": 53.94,
+      "energy_consumed": 4.31,
+      "payload_before": 330.0,
+      "payload_after": 310.0,
+      "battery_before": 99960.41,
+      "battery_after": 99956.09
+     },
+     {
+      "from_id": "RC10115",
+      "to_id": "RC10116",
+      "geo_distance": 2.0,
+      "equiv_distance": 17.5,
+      "energy_consumed": 1.4,
+      "payload_before": 310.0,
+      "payload_after": 290.0,
+      "battery_before": 99956.09,
+      "battery_after": 99954.69
+     },
+     {
+      "from_id": "RC10116",
+      "to_id": "RC10117",
+      "geo_distance": 5.0,
+      "equiv_distance": 41.25,
+      "energy_consumed": 3.3,
+      "payload_before": 290.0,
+      "payload_after": 270.0,
+      "battery_before": 99954.69,
+      "battery_after": 99951.39
+     },
+     {
+      "from_id": "RC10117",
+      "to_id": "RC10114",
+      "geo_distance": 5.0,
+      "equiv_distance": 38.75,
+      "energy_consumed": 3.1,
+      "payload_before": 270.0,
+      "payload_after": 260.0,
+      "battery_before": 99951.39,
+      "battery_after": 99948.29
+     },
+     {
+      "from_id": "RC10114",
+      "to_id": "RC10112",
+      "geo_distance": 3.0,
+      "equiv_distance": 22.5,
+      "energy_consumed": 1.8,
+      "payload_before": 260.0,
+      "payload_after": 240.0,
+      "battery_before": 99948.29,
+      "battery_after": 99946.49
+     },
+     {
+      "from_id": "RC10112",
+      "to_id": "RC10107",
+      "geo_distance": 30.81,
+      "equiv_distance": 215.64,
+      "energy_consumed": 17.25,
+      "payload_before": 240.0,
+      "payload_after": 220.0,
+      "battery_before": 99946.49,
+      "battery_after": 99929.24
+     },
+     {
+      "from_id": "RC10107",
+      "to_id": "RC10106",
+      "geo_distance": 3.0,
+      "equiv_distance": 19.5,
+      "energy_consumed": 1.56,
+      "payload_before": 220.0,
+      "payload_after": 200.0,
+      "battery_before": 99929.24,
+      "battery_after": 99927.68
+     },
+     {
+      "from_id": "RC10106",
+      "to_id": "RC10102",
+      "geo_distance": 4.0,
+      "equiv_distance": 24.0,
+      "energy_consumed": 1.92,
+      "payload_before": 200.0,
+      "payload_after": 170.0,
+      "battery_before": 99927.68,
+      "battery_after": 99925.76
+     },
+     {
+      "from_id": "RC10102",
+      "to_id": "RC10104",
+      "geo_distance": 5.39,
+      "equiv_distance": 28.27,
+      "energy_consumed": 2.26,
+      "payload_before": 170.0,
+      "payload_after": 130.0,
+      "battery_before": 99925.76,
+      "battery_after": 99923.5
+     },
+     {
+      "from_id": "RC10104",
+      "to_id": "RC10101",
+      "geo_distance": 7.07,
+      "equiv_distance": 30.05,
+      "energy_consumed": 2.4,
+      "payload_before": 130.0,
+      "payload_after": 110.0,
+      "battery_before": 99923.5,
+      "battery_after": 99921.09
+     },
+     {
+      "from_id": "RC10101",
+      "to_id": "RC10103",
+      "geo_distance": 3.0,
+      "equiv_distance": 11.25,
+      "energy_consumed": 0.9,
+      "payload_before": 110.0,
+      "payload_after": 100.0,
+      "battery_before": 99921.09,
+      "battery_after": 99920.19
+     },
+     {
+      "from_id": "RC10103",
+      "to_id": "RC10105",
+      "geo_distance": 2.0,
+      "equiv_distance": 7.0,
+      "energy_consumed": 0.56,
+      "payload_before": 100.0,
+      "payload_after": 80.0,
+      "battery_before": 99920.19,
+      "battery_after": 99919.63
+     },
+     {
+      "from_id": "RC10105",
+      "to_id": "RC10108",
+      "geo_distance": 7.07,
+      "equiv_distance": 21.21,
+      "energy_consumed": 1.7,
+      "payload_before": 80.0,
+      "payload_after": 70.0,
+      "battery_before": 99919.63,
+      "battery_after": 99917.94
+     },
+     {
+      "from_id": "RC10108",
+      "to_id": "RC10120",
+      "geo_distance": 70.38,
+      "equiv_distance": 193.56,
+      "energy_consumed": 15.48,
+      "payload_before": 70.0,
+      "payload_after": 60.0,
+      "battery_before": 99917.94,
+      "battery_after": 99902.45
+     },
+     {
+      "from_id": "RC10120",
+      "to_id": "RC10119",
+      "geo_distance": 5.0,
+      "equiv_distance": 12.5,
+      "energy_consumed": 1.0,
+      "payload_before": 60.0,
+      "payload_after": 20.0,
+      "battery_before": 99902.45,
+      "battery_after": 99901.45
+     },
+     {
+      "from_id": "RC10119",
+      "to_id": "RC10118",
+      "geo_distance": 5.39,
+      "equiv_distance": 8.08,
+      "energy_consumed": 0.65,
+      "payload_before": 20.0,
+      "payload_after": 0.0,
+      "battery_before": 99901.45,
+      "battery_after": 99900.81
+     },
+     {
+      "from_id": "RC10118",
+      "to_id": "home",
+      "geo_distance": 45.18,
+      "equiv_distance": 45.18,
+      "energy_consumed": 3.61,
+      "payload_before": 0.0,
+      "payload_after": 0.0,
+      "battery_before": 99900.81,
+      "battery_after": 99897.19
+     }
+    ],
+    "total_geo_distance": 253.12,
+    "total_equiv_distance": 1285.1,
+    "total_energy_consumed": 102.81,
+    "remaining_energy": 99897.19,
+    "total_payload_delivered": 430.0,
+    "feasible": true,
+    "warnings": []
+   }
+  }
+ ]
+}
