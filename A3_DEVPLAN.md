@@ -155,20 +155,24 @@
 - [x] **强制对齐**: 两版输出 diff，误差入单测断言 — tests/cross_check.rs (2 例)
 - [x] Rust 单测 16 例 (dto 4 + energy 9 + solver 1 + cross_check 2) + clippy 零告警
 
-### W7 (9/12-9/18): 纯函数 + 服务
+### W7 (9/12-9/18): 纯函数 + 服务 ✅ (8/23 提前完成)
 
-- [ ] Rust 版核心算法 (NN + 2opt/Or-opt + 增量评估)
-- [ ] **单测与 Python 同步 (1:1 移植)**: 核心函数用例逐组对齐 —
-      energy (21) + heuristic (54) + solver (9) ≈ 80+ 例, 覆盖增量评估与边界;
-      ≥10 例只是底线, 不是目标
-- [ ] axum 服务: POST /plan on port 9204
-- [ ] **HTTP 层测试 (微服务交付验证)**:
-      - 单元级: `tower::ServiceExt::oneshot` 直接调用 Router, 无需起端口
-      - 集成级: tokio 起真实服务 + reqwest `POST /plan`, 断言 JSON 往返
-        与错误码 (`BAD_REQUEST` / `INFEASIBLE`)
-      - golden: Python 固定种子输出 JSON → Rust 服务响应逐字段比对
-- [ ] DTO 对齐 carrier 契约
-- [ ] README.md + 调用文档 (含 curl 示例)
+- [x] Rust 版核心算法 — heuristic.rs (NN N-start + C-W Savings + 2-opt/Or-opt/VND
+      增量评估) + solver.rs (验证 → NN → VND), 1:1 对齐 heuristic.py/solver.py
+- [x] **单测与 Python 同步 (1:1 移植)**: energy 24 + heuristic 50 + solver 9 =
+      83 例 (Python 54 例中跳过 full_eval 4 例 — W5 benchmark 材料, 生产路径不移植)
+- [x] axum 服务: POST /plan on port 9204 — lib http.rs (Router/错误映射) + bin main.rs (serve)
+- [x] **HTTP 层测试 (微服务交付验证)**:
+      - 单元级: `tower::ServiceExt::oneshot` 直调 Router (4 例)
+      - 集成级: tokio 起真实 TCP 服务 + reqwest `POST /plan` (4 例)
+      - golden: Python 固定种子输出 (6 fixture) vs Rust 响应逐字段比对 —
+        sequence 精确相等, 浮点容差 0.02; 实测全部一致
+- [x] DTO 对齐 carrier 契约 — 嵌套 location 格式 (A3_SCHEMA.md §3.1)
+- [x] README.md + 调用文档 (含 curl 示例)
+- [x] 错误码契约: serde 解析失败 (语法/缺字段) 统一 400 BAD_REQUEST
+      (axum JsonRejection 默认 422, 已显式映射); 不可行返回 200+feasible=false (与 Python 对齐)
+- [x] 调试发现 2 个移植差异并修复: (1) Savings 的 dict 插入序 → Vec 保序;
+      (2) golden fixture 扁平 vs 嵌套 location 格式
 
 ### W8 (9/19-9/25): 文档
 
@@ -235,14 +239,12 @@
 
 ## 当前状态
 
-**阶段**: W1 ✅ → W2 ✅ → W3 ✅ → W4 ✅ → W5 月1中检 ✅ → W6 Rust 骨架 ✅ → W7 纯函数+服务 (下一步)
+**阶段**: W1 ✅ → W2 ✅ → W3 ✅ → W4 ✅ → W5 月1中检 ✅ → W6 Rust 骨架 ✅ → W7 纯函数+服务 ✅ → W8 专利交底书初稿 (下一步)
 **阻塞**: 无
-**下一步**: W7 纯函数 + 服务:
-  - `heuristic.rs` 核心算法 (NN + 2opt/Or-opt + 增量评估), 1:1 对齐 heuristic.py
-  - `solver.rs` 填算法 (NN 构造 + VND 搜索 + 全量后验证), 对齐 solver.py
-  - 单测与 Python 1:1 同步 (~80+ 例)
-  - axum 服务: POST /plan on port 9204 — lib 纯函数 + bin HTTP 层 (R6.2 已定案)
-  - HTTP 层测试: oneshot 单元级 + reqwest 集成级 + Python golden 比对
+**下一步**: W8 文档:
+  - 专利交底书初稿 (6 章节) — 实施例数据已就绪 (W5 指标表 + W7 Rust 交叉验证)
+  - 代码清理 + 注释整理
+  - 论文框架 (可选, 不做为交付要求)
 
 **新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
 
