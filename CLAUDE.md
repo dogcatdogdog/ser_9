@@ -77,21 +77,26 @@ D:\ser_9\
 │           ├── custom_10_tight.json
 │           └── custom_15_mixed.json
 ├── results/                     # benchmark 输出 (W5): benchmark_*.json + table_*.md
-├── a3_rust/                     # Rust 落地 (W6 骨架 ✅, W7 服务/算法)
+├── a3_rust/                     # Rust 落地 (W6 骨架 ✅, W7 纯函数+服务 ✅, 99 测试)
 │   ├── Cargo.toml
+│   ├── README.md                # 构建/运行/API 文档 (curl 示例)
 │   ├── scripts/
-│   │   └── gen_energy_golden.py # 交叉验证 golden 生成 (env312 python)
+│   │   ├── gen_energy_golden.py # 交叉验证 golden 生成 (env312 python)
+│   │   └── gen_solver_golden.py # solver 输出 golden 生成 (HTTP 比对)
 │   ├── src/
-│   │   ├── lib.rs               # lib 入口: 核心纯函数模块 (dto/energy/solver/heuristic)
-│   │   ├── main.rs              # bin 入口 (W7: axum HTTP server, port 9204)
+│   │   ├── lib.rs               # lib 入口: 核心纯函数 + HTTP 层
+│   │   ├── main.rs              # bin 入口: axum serve, port 9204
 │   │   ├── dto.rs               # MultiStopReq/RoutePlanResp (A3_SCHEMA.md §2.2)
-│   │   ├── solver.rs            # plan_multistop() 纯函数 (W7 填算法)
-│   │   ├── energy.rs            # 等效距离 (std f64::sqrt, 不引 geo crate)
-│   │   └── heuristic.rs         # NN + 局部搜索 (W7)
+│   │   ├── energy.rs            # 等效距离 (std f64::sqrt) + 全量路线模拟
+│   │   ├── heuristic.rs         # NN (N-start) + Savings + 2-opt/Or-opt/VND 增量评估
+│   │   ├── solver.rs            # plan_multistop() 纯函数 (验证 → NN → VND)
+│   │   └── http.rs              # axum Router: POST /plan + ApiError 错误映射
 │   └── tests/
 │       ├── cross_check.rs       # Python/Rust 矩阵 < 1e-6 交叉验证 (W6)
+│       ├── http_integration.rs  # 真实 TCP 服务 + reqwest + solver golden (W7)
 │       └── fixtures/
-│           └── energy_golden.json  # numpy golden (6 fixture)
+│           ├── energy_golden.json   # numpy golden (6 fixture)
+│           └── solver_golden.json   # Python plan_multistop 输出 golden (6 fixture)
 └── docs/                        # 专利交底书 / 论文素材
     └── patent_disclosure.md     # 专利交底书 (6 章节)
 ```
