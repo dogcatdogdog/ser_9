@@ -77,14 +77,21 @@ D:\ser_9\
 │           ├── custom_10_tight.json
 │           └── custom_15_mixed.json
 ├── results/                     # benchmark 输出 (W5): benchmark_*.json + table_*.md
-├── a3_rust/                     # Rust 落地 (W6 启动)
+├── a3_rust/                     # Rust 落地 (W6 骨架 ✅, W7 服务/算法)
 │   ├── Cargo.toml
-│   └── src/
-│       ├── main.rs              # axum HTTP server, port 9204
-│       ├── dto.rs               # MultiStopReq/RoutePlanResp
-│       ├── solver.rs            # plan_multistop() 纯函数
-│       ├── energy.rs            # 等效距离 (std::f64::sqrt, 不引 geo crate)
-│       └── heuristic.rs         # NN + 局部搜索
+│   ├── scripts/
+│   │   └── gen_energy_golden.py # 交叉验证 golden 生成 (env312 python)
+│   ├── src/
+│   │   ├── lib.rs               # lib 入口: 核心纯函数模块 (dto/energy/solver/heuristic)
+│   │   ├── main.rs              # bin 入口 (W7: axum HTTP server, port 9204)
+│   │   ├── dto.rs               # MultiStopReq/RoutePlanResp (A3_SCHEMA.md §2.2)
+│   │   ├── solver.rs            # plan_multistop() 纯函数 (W7 填算法)
+│   │   ├── energy.rs            # 等效距离 (std f64::sqrt, 不引 geo crate)
+│   │   └── heuristic.rs         # NN + 局部搜索 (W7)
+│   └── tests/
+│       ├── cross_check.rs       # Python/Rust 矩阵 < 1e-6 交叉验证 (W6)
+│       └── fixtures/
+│           └── energy_golden.json  # numpy golden (6 fixture)
 └── docs/                        # 专利交底书 / 论文素材
     └── patent_disclosure.md     # 专利交底书 (6 章节)
 ```

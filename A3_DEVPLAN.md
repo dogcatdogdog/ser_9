@@ -138,22 +138,37 @@
 
 ## W6-W9: 初稿·Rust
 
-### W6 (9/5-9/11): Rust crate 骨架
+### W6 (9/5-9/11): Rust crate 骨架 ✅ (8/23 提前完成)
 
-- [ ] `cargo init a3_rust`
-- [ ] 定义 `dto.rs` (MultiStopReq, RoutePlanResp, Segment)
-- [ ] 实现 `energy.rs` (等效距离计算，手写 sqrt)
-- [ ] 实现 `solver.rs` 空壳
-- [ ] Python/Rust 同输入对比: 等效距离矩阵误差 < 1e-6
-- [ ] **强制对齐**: 两版输出 diff，误差入单测断言
+**前置 (W6 启动前完成)**:
+- [x] 安装 Rust 工具链 — rustc 1.98.0 stable + MSVC 14.27 (VS2019) 已就绪
+- [x] 🔍 R6.1/R6.2 调研: sqrt 用标准库 (结论入 A3_RESEARCH_PLAN.md) + axum 设计
+
+- [x] `cargo init a3_rust` — lib + bin 结构 (lib 核心纯函数 / bin 留 W7 HTTP)
+- [x] 定义 `dto.rs` (MultiStopReq, RoutePlanResp, Segment) — 对齐 A3_SCHEMA.md §2.2
+- [x] 实现 `energy.rs` — 等效距离计算, **用标准库 `f64::sqrt()` (R6.1 结论: 无需手写,
+      IEEE 754 与 numpy 精度一致)**; 原则: 有合适的标准库/轻量库就不手写,
+      仍禁止 geo/nalgebra/OR-Tools 级重型依赖
+- [x] 实现 `solver.rs` 空壳 — 返回 INTERNAL 未实现 (W7 填算法)
+- [x] Python/Rust 同输入对比: 等效距离矩阵误差 < 1e-6 — 6 个 fixture 全过
+      (Rust 重算 geo/equiv 矩阵 vs numpy golden, 逐元素断言)
+- [x] **强制对齐**: 两版输出 diff，误差入单测断言 — tests/cross_check.rs (2 例)
+- [x] Rust 单测 16 例 (dto 4 + energy 9 + solver 1 + cross_check 2) + clippy 零告警
 
 ### W7 (9/12-9/18): 纯函数 + 服务
 
 - [ ] Rust 版核心算法 (NN + 2opt/Or-opt + 增量评估)
-- [ ] 单测 ≥10 例（对齐 Python 用例）
+- [ ] **单测与 Python 同步 (1:1 移植)**: 核心函数用例逐组对齐 —
+      energy (21) + heuristic (54) + solver (9) ≈ 80+ 例, 覆盖增量评估与边界;
+      ≥10 例只是底线, 不是目标
 - [ ] axum 服务: POST /plan on port 9204
+- [ ] **HTTP 层测试 (微服务交付验证)**:
+      - 单元级: `tower::ServiceExt::oneshot` 直接调用 Router, 无需起端口
+      - 集成级: tokio 起真实服务 + reqwest `POST /plan`, 断言 JSON 往返
+        与错误码 (`BAD_REQUEST` / `INFEASIBLE`)
+      - golden: Python 固定种子输出 JSON → Rust 服务响应逐字段比对
 - [ ] DTO 对齐 carrier 契约
-- [ ] README.md + 调用文档
+- [ ] README.md + 调用文档 (含 curl 示例)
 
 ### W8 (9/19-9/25): 文档
 
@@ -220,12 +235,14 @@
 
 ## 当前状态
 
-**阶段**: W1 ✅ → W2 ✅ → W3 ✅ → W4 ✅ → W5 月1中检 ✅ → W6 Rust (下一步)
+**阶段**: W1 ✅ → W2 ✅ → W3 ✅ → W4 ✅ → W5 月1中检 ✅ → W6 Rust 骨架 ✅ → W7 纯函数+服务 (下一步)
 **阻塞**: 无
-**下一步**: W6 Rust crate 骨架:
-  - 🔍 R6.1/R6.2 调研 (sqrt 精度 + axum 设计, 见 A3_RESEARCH_PLAN.md)
-  - `cargo init a3_rust` + dto.rs + energy.rs + solver.rs 空壳
-  - Python/Rust 同输入对比: 等效距离矩阵误差 < 1e-6 (强制对齐)
+**下一步**: W7 纯函数 + 服务:
+  - `heuristic.rs` 核心算法 (NN + 2opt/Or-opt + 增量评估), 1:1 对齐 heuristic.py
+  - `solver.rs` 填算法 (NN 构造 + VND 搜索 + 全量后验证), 对齐 solver.py
+  - 单测与 Python 1:1 同步 (~80+ 例)
+  - axum 服务: POST /plan on port 9204 — lib 纯函数 + bin HTTP 层 (R6.2 已定案)
+  - HTTP 层测试: oneshot 单元级 + reqwest 集成级 + Python golden 比对
 
 **新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
 

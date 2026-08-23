@@ -395,7 +395,7 @@ first-improvement 更能体现增量评估的优势（频繁试错、快速拒�
 
 ## W6-W9: Rust 落地 — 调研项
 
-### R6.1 Rust sqrt 精度与依赖策略
+### R6.1 Rust sqrt 精度与依赖策略 (✅ 已确定 2026-08-23)
 
 **调研问题:** Rust 手写 sqrt 能否达到与 Python numpy 一致的精度（<1e-6）？
 
@@ -410,17 +410,34 @@ first-improvement 更能体现增量评估的优势（频繁试错、快速拒�
 
 → **结论: 不需要手写 sqrt。** CLAUDE.md 中"手写 sqrt"应更新为"使用标准库 sqrt，不引入 geo crate"。
 
-### R6.2 axum 服务最佳实践
+**实施确认 (W6 实测):** 本机 rustc 1.98.0 stable + MSVC 14.27 (VS2019) 已就绪，
+`f64::sqrt()` 即 LLVM intrinsic，与 numpy 的 libm 同为 0.5 ULP 级别 → 等效距离
+矩阵误差预期 ≪ 1e-6，交叉验证直接以 `f64::sqrt` 互相比对即可。
+
+### R6.2 axum 服务最佳实践 (✅ 已确定 2026-08-23)
 
 **调研问题:** axum 0.7 的最佳实践模式？
 
-**调研内容:**
-- 请求体解析（serde + JSON）
-- 错误处理（anyhow/thiserror → 统一 ApiError 格式）
-- 纯函数接口：solver 函数不接触 HTTP 层
-- 健康检查 endpoint
+**结论 (依据 DEVPLAN W6-W7 测试策略, 已定案):**
 
-→ 标准工程实践，无需深度调研。
+1. **请求体解析**: `axum::Json<MultiStopReq>` extractor + serde derive；
+   可选字段 (capacity/battery) 用 `#[serde(default = ...)]`，缺省回落 `Defaults`
+2. **错误处理**: 统一 `ApiError` (schema §2.2 struct `{code, message}`, 静态构造器)
+   + `IntoResponse` (W7), 错误体为顶层 JSON `{"code": ..., "message": ...}`:
+   - `BAD_REQUEST` (400): serde 解析失败 / 参数校验失败
+   - `INFEASIBLE` (422): 容量/电量约束无法满足 (与 Python `INFEASIBLE` 对齐)
+   - `INTERNAL` (500): 兜底
+3. **纯函数接口 (铁律)**: `solver::plan_multistop()` 不 import axum/tower，
+   只吃 `&MultiStopReq` 返回 `Result<RoutePlanResp, SolverError>`；
+   HTTP 层只做 解析→调用→错误映射。solver 内禁止 I/O/网络/全局状态
+4. **服务启动**: `axum::serve(TcpListener, app)` + tokio runtime，port 9204；
+   无共享状态 → 不需要 `State`（保持无状态，便于 oneshot 测试）
+5. **测试三层 (与 Python 1:1 同步衔接)**:
+   - 单元级: `tower::ServiceExt::oneshot` 直接调 Router，不起端口
+   - 集成级: tokio 起真实服务 + reqwest `POST /plan`，断言 JSON 往返与错误码
+   - golden: Python 固定种子输出 JSON → Rust 服务响应逐字段比对
+6. **依赖最小化**: axum 0.7 + tokio (full) + serde/serde_json + thiserror。
+   不引入数据库/消息等平台化依赖 (MVP 纯计算服务)；仍禁止 geo/nalgebra
 
 ---
 
@@ -454,8 +471,8 @@ first-improvement 更能体现增量评估的优势（频繁试错、快速拒�
 | | R4.4 邻域组合 | 0.5天 | VND vs 交替 vs 混合 |
 | **W5 前** | R5.1 OR-Tools 精确解 | 1天 ✅ 已确定 | CP-SAT + 能量感知 DP, 双基线 gap |
 | | R5.2 消融实验设计 | 0.5天 ✅ 已确定 | 6 变体消融矩阵 |
-| **W6 前** | R6.1 Rust sqrt 精度 | 0.5天 | 验证 IEEE 754 一致性 |
-| | R6.2 axum 设计 | 0.5天 | API 设计文档 |
+| **W6 前** | R6.1 Rust sqrt 精度 | 0.5天 ✅ 已确定 | 标准库 f64::sqrt (IEEE 754), 交叉验证 < 1e-6 实证 |
+| | R6.2 axum 设计 | 0.5天 ✅ 已确定 | 错误码/ApiError/测试三层已定案 (见 R6.2) |
 | **合计** | | **~7 天** |
 
 ---
