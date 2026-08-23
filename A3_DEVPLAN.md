@@ -140,9 +140,15 @@
 
 ### W6 (9/5-9/11): Rust crate 骨架
 
+**前置 (W6 启动前完成)**:
+- [ ] 安装 Rust 工具链 (rustup + MSVC toolchain — 当前环境未安装)
+- [ ] 🔍 R6.1/R6.2 调研: sqrt 精度已结论 (标准库即够) + axum 设计
+
 - [ ] `cargo init a3_rust`
 - [ ] 定义 `dto.rs` (MultiStopReq, RoutePlanResp, Segment)
-- [ ] 实现 `energy.rs` (等效距离计算，手写 sqrt)
+- [ ] 实现 `energy.rs` — 等效距离计算, **用标准库 `f64::sqrt()` (R6.1 结论: 无需手写,
+      IEEE 754 与 numpy 精度一致)**; 原则: 有合适的标准库/轻量库就不手写,
+      仍禁止 geo/nalgebra/OR-Tools 级重型依赖
 - [ ] 实现 `solver.rs` 空壳
 - [ ] Python/Rust 同输入对比: 等效距离矩阵误差 < 1e-6
 - [ ] **强制对齐**: 两版输出 diff，误差入单测断言
@@ -150,10 +156,17 @@
 ### W7 (9/12-9/18): 纯函数 + 服务
 
 - [ ] Rust 版核心算法 (NN + 2opt/Or-opt + 增量评估)
-- [ ] 单测 ≥10 例（对齐 Python 用例）
+- [ ] **单测与 Python 同步 (1:1 移植)**: 核心函数用例逐组对齐 —
+      energy (21) + heuristic (54) + solver (9) ≈ 80+ 例, 覆盖增量评估与边界;
+      ≥10 例只是底线, 不是目标
 - [ ] axum 服务: POST /plan on port 9204
+- [ ] **HTTP 层测试 (微服务交付验证)**:
+      - 单元级: `tower::ServiceExt::oneshot` 直接调用 Router, 无需起端口
+      - 集成级: tokio 起真实服务 + reqwest `POST /plan`, 断言 JSON 往返
+        与错误码 (`BAD_REQUEST` / `INFEASIBLE`)
+      - golden: Python 固定种子输出 JSON → Rust 服务响应逐字段比对
 - [ ] DTO 对齐 carrier 契约
-- [ ] README.md + 调用文档
+- [ ] README.md + 调用文档 (含 curl 示例)
 
 ### W8 (9/19-9/25): 文档
 
@@ -223,9 +236,11 @@
 **阶段**: W1 ✅ → W2 ✅ → W3 ✅ → W4 ✅ → W5 月1中检 ✅ → W6 Rust (下一步)
 **阻塞**: 无
 **下一步**: W6 Rust crate 骨架:
-  - 🔍 R6.1/R6.2 调研 (sqrt 精度 + axum 设计, 见 A3_RESEARCH_PLAN.md)
+  - ⚠️ 前置: 安装 Rust 工具链 (rustup + MSVC — 当前未安装)
+  - 🔍 R6.1/R6.2 调研 (sqrt 精度已结论: 用标准库; axum 设计)
   - `cargo init a3_rust` + dto.rs + energy.rs + solver.rs 空壳
   - Python/Rust 同输入对比: 等效距离矩阵误差 < 1e-6 (强制对齐)
+  - W7 单测与 Python 1:1 同步 (~80+ 例) + axum 服务 HTTP 层测试
 
 **新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
 
