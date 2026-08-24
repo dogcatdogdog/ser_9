@@ -21,8 +21,10 @@ Thumbs.db
 env/
 env312/
 
-# Test outputs
-results/
+# Test outputs — results/ 已入库 (W8: 文档材料, benchmark 结果保留)
+# 仅忽略临时文件与运行日志
+results/_benchmark_run.log
+results/*.tmp
 *.tmp
 
 # PDF text extract
