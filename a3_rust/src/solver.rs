@@ -1,10 +1,14 @@
 //! 核心求解入口 — 对齐 Python `a3_python/solver.py` (W7 实现)
 //!
-//! 求解流程: 输入验证 (1 ≤ N ≤ 20) → 电量感知 NN 构造 (N-start)
+//! 求解流程: 参数校验 (W8 硬化) → 电量感知 NN 构造 (N-start)
 //! → 初始解不可行则直接返回 → VND 局部搜索 (2-opt + Or-opt, 增量评估)
 //! 铁律: 纯函数 — 不 import HTTP/IO 层, 无网络、无全局状态。
+//!
+//! 注: `cfg.time_limit_secs > 0` 时 VND 检查运行时限 (读时钟),
+//! 正常求解远快于时限 (n≤20 < 150ms) 不触发, 不影响确定性输出。
 
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
 use crate::dto::{ApiError, Defaults, MultiStopReq, RoutePlanResp};
 use crate::heuristic::{construct_nn, local_search_vnd};
@@ -12,19 +16,62 @@ use crate::heuristic::{construct_nn, local_search_vnd};
 /// MVP 目标点上限 (对齐 Python `MAX_TARGETS`)
 const MAX_TARGETS: usize = 20;
 
+/// 校验请求参数域 — 非法输入 → `BAD_REQUEST` (W8 硬化 P0)
+///
+/// 防御重点: `drone.alpha <= 0` 会触发 energy.rs 的 assert panic
+/// (Python 语义为 ValueError 抛错); 在此统一拦截为可读的 400。
+/// 比较用 `!(x > 0)` 形态 — 对 NaN 同样拦截。
+fn validate_params(req: &MultiStopReq) -> Result<(), ApiError> {
+    let d = &req.drone;
+    // partial_cmp != Some(Greater): alpha <= 0 与 NaN 都拦截 (NaN-safe)
+    if d.alpha.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater) {
+        return Err(ApiError::bad_request(format!(
+            "drone.alpha must be > 0, got {}",
+            d.alpha
+        )));
+    }
+    if d.beta < 0.0 {
+        return Err(ApiError::bad_request(format!(
+            "drone.beta must be >= 0, got {}",
+            d.beta
+        )));
+    }
+    if d.payload_capacity < 0.0 {
+        return Err(ApiError::bad_request(format!(
+            "drone.payload_capacity must be >= 0, got {}",
+            d.payload_capacity
+        )));
+    }
+    if d.battery_capacity < 0.0 {
+        return Err(ApiError::bad_request(format!(
+            "drone.battery_capacity must be >= 0, got {}",
+            d.battery_capacity
+        )));
+    }
+    for t in &req.targets {
+        if t.demand < 0.0 {
+            return Err(ApiError::bad_request(format!(
+                "target {} demand must be >= 0, got {}",
+                t.id, t.demand
+            )));
+        }
+    }
+    Ok(())
+}
+
 /// 无人机多目标访问路线规划 — A3_SCHEMA.md §2.2
 ///
 /// 求解流程:
-///   1. 输入验证 (1 ≤ N ≤ 20), 非法输入 → `BAD_REQUEST`
+///   1. 输入验证 (1 ≤ N ≤ 20 + 参数域), 非法输入 → `BAD_REQUEST`
 ///   2. 电量感知 NN 构造初始解 (N-start 变体)
 ///   3. 初始解不可行 (如载重超限) → 直接返回, 不做搜索
-///   4. VND 局部搜索改进 (2-opt + Or-opt 交替, 增量评估)
+///   4. VND 局部搜索改进 (2-opt + Or-opt 交替, 增量评估, 受 time_limit 约束)
 ///
 /// 返回的 RoutePlanResp.feasible=False 表示约束无法满足,
 /// 查看 warnings 了解原因 (不返回 INFEASIBLE 错误 — 与 Python 一致,
 /// 不可行是合法求解结果而非异常)。
 pub fn plan_multistop(req: &MultiStopReq, cfg: &Defaults) -> Result<RoutePlanResp, ApiError> {
-    // 输入验证
+    // 输入验证: 结构 (数量) + 参数域 (W8 硬化: 防 panic + 语义清晰的 400)
     if req.targets.is_empty() {
         return Err(ApiError::bad_request("targets list cannot be empty"));
     }
@@ -34,6 +81,7 @@ pub fn plan_multistop(req: &MultiStopReq, cfg: &Defaults) -> Result<RoutePlanRes
             req.targets.len()
         )));
     }
+    validate_params(req)?;
 
     // Phase 1: 电量感知 NN 构造初始解
     let initial = construct_nn(&req.targets, &req.home, &req.drone);
@@ -43,9 +91,16 @@ pub fn plan_multistop(req: &MultiStopReq, cfg: &Defaults) -> Result<RoutePlanRes
         return Ok(initial);
     }
 
-    // Phase 2: VND 局部搜索改进
+    // Phase 2: VND 局部搜索改进 (W8 硬化: time_limit_secs > 0 时受时限约束)
     let targets_map: HashMap<String, &crate::dto::TargetDto> =
         req.targets.iter().map(|t| (t.id.clone(), t)).collect();
+    let deadline = if cfg.time_limit_secs > 0.0 {
+        Some(
+            Instant::now() + Duration::from_secs_f64(cfg.time_limit_secs),
+        )
+    } else {
+        None
+    };
     let improved = local_search_vnd(
         &initial,
         &targets_map,
@@ -53,6 +108,7 @@ pub fn plan_multistop(req: &MultiStopReq, cfg: &Defaults) -> Result<RoutePlanRes
         &req.drone,
         cfg.max_iterations,
         3, // max_segment_size (对齐 Python 默认)
+        deadline,
     );
 
     Ok(improved)
@@ -166,6 +222,59 @@ mod tests {
         );
         let plan = plan_multistop(&req, &cfg(20)).expect("ok");
         assert!(!plan.feasible);
+    }
+
+    // ============ 参数域校验 (W8 硬化: 防 panic) ============
+
+    fn req_with_alpha(alpha: f64) -> MultiStopReq {
+        let mut d = drone(30.0, 10000.0);
+        d.alpha = alpha;
+        make_req(targets(&[(100.0, 0.0, 5.0)]), d)
+    }
+
+    /// alpha=0 → BAD_REQUEST (否则会触发 energy.rs assert panic)
+    #[test]
+    fn plan_alpha_zero_rejected() {
+        let err = plan_multistop(&req_with_alpha(0.0), &cfg(20)).expect_err("alpha=0 应报错");
+        assert_eq!(err.code, "BAD_REQUEST");
+        assert!(err.message.contains("alpha"));
+    }
+
+    /// alpha<0 → BAD_REQUEST
+    #[test]
+    fn plan_alpha_negative_rejected() {
+        let err = plan_multistop(&req_with_alpha(-0.1), &cfg(20)).expect_err("alpha<0 应报错");
+        assert_eq!(err.code, "BAD_REQUEST");
+    }
+
+    /// beta<0 → BAD_REQUEST
+    #[test]
+    fn plan_beta_negative_rejected() {
+        let mut d = drone(30.0, 10000.0);
+        d.beta = -0.001;
+        let req = make_req(targets(&[(100.0, 0.0, 5.0)]), d);
+        let err = plan_multistop(&req, &cfg(20)).expect_err("beta<0 应报错");
+        assert_eq!(err.code, "BAD_REQUEST");
+        assert!(err.message.contains("beta"));
+    }
+
+    /// capacity<0 → BAD_REQUEST
+    #[test]
+    fn plan_capacity_negative_rejected() {
+        let mut d = drone(-1.0, 10000.0);
+        d.alpha = 0.1;
+        let req = make_req(targets(&[(100.0, 0.0, 5.0)]), d);
+        let err = plan_multistop(&req, &cfg(20)).expect_err("capacity<0 应报错");
+        assert_eq!(err.code, "BAD_REQUEST");
+    }
+
+    /// 负 demand → BAD_REQUEST
+    #[test]
+    fn plan_negative_demand_rejected() {
+        let req = make_req(targets(&[(100.0, 0.0, -5.0)]), drone(30.0, 10000.0));
+        let err = plan_multistop(&req, &cfg(20)).expect_err("demand<0 应报错");
+        assert_eq!(err.code, "BAD_REQUEST");
+        assert!(err.message.contains("demand"));
     }
 
     // ============ 边界 ============

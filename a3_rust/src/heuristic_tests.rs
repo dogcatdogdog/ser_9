@@ -663,7 +663,7 @@ fn vnd_improves_nn_solution() {
     let drone = drone(50.0, 50000.0, 0.1, 0.005);
     let nn = construct_nn(&targets, &HOME, &drone);
     let map = make_map(&targets);
-    let vnd = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3);
+    let vnd = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3, None);
     assert!(vnd.feasible);
     verify_all(&vnd, &targets, &drone);
     assert!(vnd.total_equiv_distance <= nn.total_equiv_distance + 0.01);
@@ -678,7 +678,7 @@ fn vnd_better_than_or_equal_to_nn() {
     let drone = drone(20.0, 20000.0, 0.1, 0.005);
     let nn = construct_nn(&targets, &HOME, &drone);
     let map = make_map(&targets);
-    let vnd = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3);
+    let vnd = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3, None);
     assert!(vnd.total_equiv_distance <= nn.total_equiv_distance + 0.01);
     verify_constraints(&vnd, drone.payload_capacity, drone.alpha, drone.beta);
 }
@@ -692,8 +692,8 @@ fn vnd_multi_iteration_converges() {
     let drone = drone(50.0, 50000.0, 0.1, 0.005);
     let nn = construct_nn(&targets, &HOME, &drone);
     let map = make_map(&targets);
-    let vnd1 = local_search_vnd(&nn, &map, &HOME, &drone, 5, 3);
-    let vnd2 = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3);
+    let vnd1 = local_search_vnd(&nn, &map, &HOME, &drone, 5, 3, None);
+    let vnd2 = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3, None);
     assert_eq!(vnd1.sequence, vnd2.sequence);
     assert_eq!(vnd1.total_equiv_distance, vnd2.total_equiv_distance);
 }
@@ -707,8 +707,8 @@ fn vnd_deterministic() {
     let drone = drone(50.0, 10000.0, 0.1, 0.005);
     let nn = construct_nn(&targets, &HOME, &drone);
     let map = make_map(&targets);
-    let v1 = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3);
-    let v2 = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3);
+    let v1 = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3, None);
+    let v2 = local_search_vnd(&nn, &map, &HOME, &drone, 20, 3, None);
     assert_eq!(v1.sequence, v2.sequence);
     assert_eq!(v1.total_equiv_distance, v2.total_equiv_distance);
     assert_eq!(v1.total_energy_consumed, v2.total_energy_consumed);
@@ -722,7 +722,7 @@ fn vnd_constraints_satisfied_on_fixtures() {
         let nn = construct_nn(&targets, &home, &drone);
         let map = make_map(&targets);
         if nn.feasible {
-            let vnd = local_search_vnd(&nn, &map, &home, &drone, 20, 3);
+            let vnd = local_search_vnd(&nn, &map, &home, &drone, 20, 3, None);
             if vnd.feasible {
                 verify_constraints(&vnd, drone.payload_capacity, drone.alpha, drone.beta);
                 assert!(vnd.total_equiv_distance <= nn.total_equiv_distance + 0.01);
