@@ -211,3 +211,99 @@ async fn golden_matches_python_output() {
         }
     }
 }
+
+// ====================================================================
+// W8 硬化验证: 并发请求 (spawn_blocking 隔离后应有真实并发能力)
+// ====================================================================
+
+/// 10 并发请求 (20 点 Solomon 实例) → 全部 200 + 结果一致 (确定性)
+#[tokio::test]
+async fn concurrent_requests_all_succeed() {
+    let base = spawn_server().await;
+    let golden = load_golden();
+    // 选最重的实例 (solomon_rc101_n20) 最大化并发下的计算负载
+    let inst = golden
+        .instances
+        .iter()
+        .find(|i| i.fixture == "solomon_rc101_n20.json")
+        .expect("rc101 in golden");
+    let mut req = serde_json::Map::new();
+    req.insert("home".into(), inst.home.clone());
+    req.insert("drone".into(), inst.drone.clone());
+    req.insert("targets".into(), serde_json::Value::Array(inst.targets.clone()));
+    let body = serde_json::Value::Object(req).to_string();
+
+    let client = reqwest::Client::new();
+    let mut handles = Vec::new();
+    for _ in 0..10 {
+        let client = client.clone();
+        let url = format!("{base}/plan");
+        let body = body.clone();
+        handles.push(tokio::spawn(async move {
+            client
+                .post(&url)
+                .header("content-type", "application/json")
+                .body(body)
+                .send()
+                .await
+        }));
+    }
+
+    for (idx, h) in handles.into_iter().enumerate() {
+        let resp = h.await.expect("task join").expect("send");
+        assert_eq!(resp.status(), 200, "并发请求 {idx} 应成功");
+        let plan: RoutePlanResp = resp.json().await.expect("parse");
+        assert_eq!(plan.sequence.len(), 20, "并发请求 {idx} 应覆盖全部 20 点");
+        assert_eq!(
+            plan.sequence,
+            inst.expected.sequence,
+            "并发请求 {idx} 结果应与串行一致 (确定性)"
+        );
+    }
+}
+
+/// 并发中的非法请求 (alpha=0) → 400, 不影响其他请求
+#[tokio::test]
+async fn concurrent_bad_request_isolated() {
+    let base = spawn_server().await;
+    let client = reqwest::Client::new();
+    let good = r#"{
+        "targets": [{"id": "c1", "location": {"x": 100.0, "y": 0.0}, "demand": 5.0}],
+        "home": {"x": 0.0, "y": 0.0},
+        "drone": {"payload_capacity": 30.0, "battery_capacity": 10000.0,
+                   "alpha": 0.1, "beta": 0.005}
+    }"#;
+    let bad = good.replace(r#""alpha": 0.1"#, r#""alpha": 0.0"#);
+
+    let mut handles = Vec::new();
+    for _ in 0..5 {
+        let (client, good, bad, url) = (
+            client.clone(),
+            good.to_string(),
+            bad.to_string(),
+            format!("{base}/plan"),
+        );
+        handles.push(tokio::spawn(async move {
+            let g = client
+                .post(&url)
+                .header("content-type", "application/json")
+                .body(good)
+                .send()
+                .await
+                .expect("good send");
+            let b = client
+                .post(&url)
+                .header("content-type", "application/json")
+                .body(bad)
+                .send()
+                .await
+                .expect("bad send");
+            (g.status(), b.status())
+        }));
+    }
+    for h in handles {
+        let (good_status, bad_status) = h.await.expect("task join");
+        assert_eq!(good_status, 200, "好请求应成功");
+        assert_eq!(bad_status, 400, "坏请求应 400 (校验隔离)");
+    }
+}

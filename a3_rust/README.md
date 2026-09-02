@@ -65,6 +65,26 @@ curl -X POST http://127.0.0.1:9204/plan \
   }'
 ```
 
+## 运行配置 (env, 均有默认值)
+
+| 变量 | 默认 | 说明 |
+|------|------|------|
+| `A3_PORT` | 9204 | 监听端口 |
+| `A3_MAX_ITERATIONS` | 20 | VND 外层迭代上限 |
+| `A3_TIME_LIMIT_SECS` | 5.0 | 求解时限 (<=0 不限; 正常求解 <150ms 不触发) |
+
+## 健康检查
+
+```bash
+curl http://127.0.0.1:9204/healthz   # → 200 ok
+```
+
+## 工程化特性 (W8 硬化)
+
+- **防崩溃**: 参数域校验 (alpha>0 等, 非法 → 400) + middleware panic 兜底 (→ 500 JSON, 不中断连接)
+- **并发**: 求解在 `spawn_blocking` 线程池执行 (CPU 密集隔离 async worker), 请求超时兜底 10s
+- **可观测**: tracing 结构化日志 (method/path/status/耗时)
+
 ## 架构
 
 ```
@@ -73,12 +93,13 @@ src/
 ├── dto.rs       # MultiStopReq / RoutePlanResp / SegmentDto / ApiError (§2.2)
 ├── energy.rs    # 等效距离变换 + 全量路线模拟 (标准库 f64::sqrt)
 ├── heuristic.rs # NN 构造 (N-start) + C-W Savings + 2-opt/Or-opt/VND (增量评估)
-├── solver.rs    # plan_multistop 纯函数入口 (验证 → NN → VND)
-├── http.rs      # axum Router: POST /plan (解析→调用→错误映射)
-└── main.rs      # bin 启动 (port 9204)
+├── solver.rs    # plan_multistop 纯函数入口 (参数校验 → NN → VND)
+├── http.rs      # axum Router: ServiceConfig State + spawn_blocking + panic 兜底
+│                #   + /healthz + 请求日志 (解析→调用→错误映射)
+└── main.rs      # bin 启动: serve + tracing init + env 配置
 tests/
 ├── cross_check.rs     # Python numpy vs Rust 矩阵 < 1e-6 (W6)
-├── http_integration.rs# 真实 TCP 服务 + reqwest + golden 逐字段比对 (W7)
+├── http_integration.rs# 真实 TCP 服务 + reqwest + golden 逐字段比对 (W7) + 并发 (W8)
 └── fixtures/          # energy_golden.json / solver_golden.json
 scripts/
 └── gen_*_golden.py    # golden 生成 (env312 python)

@@ -805,6 +805,8 @@ pub(crate) fn local_search_or_opt(
 /// (对齐 Python `local_search_vnd`, Mladenović & Hansen 1997)
 ///
 /// W4 主搜索入口, 在 plan_multistop 中调用。
+/// W8 硬化: `deadline` 非 None 时每轮迭代前检查时限, 超时提前返回当前最优。
+/// 正常求解远快于时限时不触发, 不影响输出确定性。
 pub(crate) fn local_search_vnd(
     route: &RoutePlanResp,
     targets_map: &HashMap<String, &TargetDto>,
@@ -812,6 +814,7 @@ pub(crate) fn local_search_vnd(
     drone: &DroneSpecDto,
     max_iterations: usize,
     max_segment_size: usize,
+    deadline: Option<std::time::Instant>,
 ) -> RoutePlanResp {
     if route.sequence.len() < 2 {
         return route.clone();
@@ -822,6 +825,9 @@ pub(crate) fn local_search_vnd(
     let mut iteration = 0;
 
     while improved && iteration < max_iterations {
+        if deadline.is_some_and(|d| std::time::Instant::now() >= d) {
+            break; // 超时: 返回当前最优解 (time_limit_secs 语义)
+        }
         improved = false;
         iteration += 1;
 

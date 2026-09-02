@@ -173,6 +173,15 @@
       (axum JsonRejection 默认 422, 已显式映射); 不可行返回 200+feasible=false (与 Python 对齐)
 - [x] 调试发现 2 个移植差异并修复: (1) Savings 的 dict 插入序 → Vec 保序;
       (2) golden fixture 扁平 vs 嵌套 location 格式
+- [x] **W8 服务硬化 (8/24, 服务工程化, 测试 109 例)**:
+      - P0 防崩溃: solver 参数域校验 (alpha>0/beta/capacity/battery/demand ≥ 0 → 400,
+        防 alpha≤0 触发 assert panic) + middleware panic 兜底 (tokio task 隔离 → 500 JSON)
+      - P1 并发: plan_multistop 移入 spawn_blocking (CPU 密集隔离 async worker)
+        + 请求超时兜底 10s + time_limit_secs 真正生效 (VND deadline, 正常求解不触发)
+      - P2 可运维: GET /healthz + tracing 请求日志 (method/path/status/耗时)
+        + ServiceConfig State 注入 + env 配置 (A3_PORT/A3_MAX_ITERATIONS/A3_TIME_LIMIT_SECS)
+      - 并发验证: 10 并发 20 点请求全 200 + 结果与串行一致 (确定性); 坏请求 400 隔离
+      - 冒烟: healthz 200 / plan 200 / alpha=0 → 400 JSON (原为 panic 断连)
 
 ### W8 (9/19-9/25): 文档
 
