@@ -1,0 +1,7 @@
+# LaTeX build artifacts — 只入库 .tex 源与 .md 策划文档
+pdf/
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.synctex.gz

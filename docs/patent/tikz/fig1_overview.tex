@@ -1,0 +1,39 @@
+% fig1_overview — method overall flow (S1-S4)
+% 用途: 交底书 图1, §五 技术方案 总体流程 (对应权利要求方法步骤顺序)
+% 数据: 步骤来自 solver.py plan_multistop / heuristic.py / energy_model.py
+% 编译: latexmk -pdf -xelatex fig1_overview.tex  (英文标签, 避免 CJK 字体依赖)
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\begin{document}
+\begin{tikzpicture}[
+  font=\small,
+  io/.style={draw,rounded corners=2pt,align=center,text width=10.2cm,fill=gray!10},
+  box/.style={draw,rounded corners=2pt,align=center,text width=10.2cm,fill=white},
+  result/.style={box,draw=black!70,line width=1.1pt},
+  ar/.style={-{Stealth[length=3mm]},thick},
+]
+\node[io] (inp) {Input: targets $t_1..t_N$ $(coord,demand)$, home $h$, drone $(\alpha,\beta,\,cap,\,bat)$};
+
+\node[box,below=0.7cm of inp] (s1) {S1 \quad Build energy-equivalent distance matrix\\
+  $\mathrm{EED}(i,j,L)\;=\;d_{ij}\cdot\dfrac{\alpha+\beta L}{\alpha}$,\quad $L$ = payload at departure};
+
+\node[box,below=0.7cm of s1] (s2) {S2 \quad Energy-aware construction (N-start nearest neighbor)\\
+  capacity pre-check ($\sum demand>cap \Rightarrow$ infeasible); step requires round-trip energy feasible};
+
+\node[box,below=0.7cm of s2] (s3) {S3 \quad Incremental local search: VND $=$ 2-opt $\Leftrightarrow$ Or-opt\\
+  first-improvement; per-move incremental capacity + battery check $O(k)$, not $O(n)$};
+
+\node[box,below=0.7cm of s3] (s4) {S4 \quad Full post-simulation (payload / energy, segment by segment)};
+
+\node[result,below=0.7cm of s4] (res) {Output: RoutePlan $\{$ sequence, $total\_equiv\_distance$, feasible $\}$};
+
+\draw[ar] (inp)--(s1); \draw[ar] (s1)--(s2); \draw[ar] (s2)--(s3); \draw[ar] (s3)--(s4); \draw[ar] (s4)--(res);
+
+\node[right=0.15cm of s2,align=left,text width=4.6cm,font=\footnotesize,text=black!60]
+      {construction infeasible $\Rightarrow$ return partial route, feasible=false (no search)};
+\node[right=0.15cm of s3,align=left,text width=4.6cm,font=\footnotesize,text=black!60]
+      {until no improvement or iteration limit};
+\end{tikzpicture}
+\end{document}

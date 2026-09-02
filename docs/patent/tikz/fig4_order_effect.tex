@@ -1,0 +1,62 @@
+% fig4_order_effect — visit-order affects energy on identical geometry
+% 用途: 交底书 图4, §四/§六: 两方向几何总距相同 3962.2 m, 能耗 872.7 -> 827.1 Wh (-5.5%)
+% 实例: random n=8 scale=800 seed=2, standard drone, total demand 45.8 kg
+% 数据: docs/patent/scripts/fig4_data.json (gen_fig4.py 复现); 坐标 /120 归一
+% 说明: 几何最优环(a) 与反向访问(b, 能量感知解 = 能量精确 DP 最优)是同一无向环, 仅方向不同
+% 编译: latexmk -pdf -xelatex fig4_order_effect.tex
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,decorations.markings}
+\begin{document}
+\begin{tikzpicture}[
+  font=\small,
+  midarrow/.style={
+    postaction={decorate},
+    decoration={markings, mark=at position 0.5 with {\arrow{Stealth[length=2.1mm,width=2.1mm]}}}
+  }
+]
+% --- node coordinates (A original; B = shift +17 in x) ---
+\coordinate (h)  at ( 0.00, 0.00);
+\coordinate (p1) at (-3.18,-2.69);
+\coordinate (p2) at (-5.44, 1.34);
+\coordinate (p3) at (-4.16,-5.93);
+\coordinate (p4) at ( 2.10, 0.83);
+\coordinate (p5) at (-0.90, 2.26);
+\coordinate (p6) at ( 1.78, 6.23);
+\coordinate (p7) at (-1.45,-4.17);
+\coordinate (p8) at ( 0.15, 5.22);
+\coordinate (qh) at (17.00, 0.00);
+\coordinate (q1) at (13.82,-2.69);
+\coordinate (q2) at (11.56, 1.34);
+\coordinate (q3) at (12.84,-5.93);
+\coordinate (q4) at (19.10, 0.83);
+\coordinate (q5) at (16.10, 2.26);
+\coordinate (q6) at (18.78, 6.23);
+\coordinate (q7) at (15.55,-4.17);
+\coordinate (q8) at (17.15, 5.22);
+
+% --- top shared note ---
+\node[anchor=south,align=center,font=\small] at (8.6,8.2)
+  {identical set of hops $\Rightarrow$ same total geo distance \textbf{3962.2\,m};\quad only traversal order differs};
+
+% --- panel A: geometry-optimal direction ---
+\node[anchor=south,align=center] at (-1.5,7.3) {(a) geometry-optimal direction};
+\draw[black,midarrow,line width=1.0pt]
+  (h)--(p7)--(p3)--(p1)--(p2)--(p5)--(p8)--(p6)--(p4)--cycle;
+
+% --- panel B: energy-aware direction (proposed, = energy exact DP) ---
+\node[anchor=south,align=center] at (16.5,7.3) {(b) energy-aware direction (proposed)};
+\draw[black!55,midarrow,line width=1.0pt]
+  (qh)--(q4)--(q6)--(q8)--(q5)--(q2)--(q1)--(q3)--(q7)--cycle;
+
+% --- markers: filled circles with ids ---
+\foreach \pt/\id in {h/H, p1/t1, p2/t2, p3/t3, p4/t4, p5/t5, p6/t6, p7/t7, p8/t8,
+                     qh/H, q1/t1, q2/t2, q3/t3, q4/t4, q5/t5, q6/t6, q7/t7, q8/t8}{
+  \node[circle,draw,fill=white,inner sep=0pt,minimum size=0.54cm,font=\tiny] at (\pt) {\id};
+}
+
+% --- energy totals ---
+\node[anchor=north,align=center] at (-1.5,-6.6) {\textbf{total energy 872.7\,Wh}};
+\node[anchor=north,align=center] at (16.5,-6.6) {\textbf{total energy 827.1\,Wh}\quad ($-5.5$\%)};
+\end{tikzpicture}
+\end{document}

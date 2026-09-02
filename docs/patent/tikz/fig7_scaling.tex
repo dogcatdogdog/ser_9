@@ -1,0 +1,38 @@
+% fig7_scaling — solve time vs problem size (embodiment performance)
+% 用途: 交底书 图7, §八 性能: 5/10/15/20 点平均求解耗时 (log y)
+% 数据: results/table_20260819_105511.md 「3. 规模扩展时间曲线」:
+%   N=5/10/15/20, our 1.04/8.19/26.96/92.05 ms
+%   CP-SAT geo-opt 4.49/10.71/43.29/715.84 ms
+%   PyVRP ~2000 ms (固定 2s 时限截断, 非收敛时间; 不作性能对比)
+% 编译: latexmk -pdf -xelatex fig7_scaling.tex
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\begin{document}
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+  width=13.5cm, height=8cm,
+  xlabel={number of target points $N$}, ylabel={avg.\ solve time per instance (ms)},
+  xmin=3, xmax=22, ymin=0.8, ymax=5000,
+  xtick={5,10,15,20},
+  grid=both, grid style={gray!25},
+  legend style={at={(0.02,0.98)}, anchor=north west, font=\small, draw=none, fill=none},
+  title={\textbf{Solving time scaling (93-instance aggregation)}},
+  label style={font=\small}, tick label style={font=\small},
+  legend image post style={line width=1.2pt},
+]
+% proposed method (incremental NN+VND)
+\addplot[thick, mark=*, mark size=2.6pt, black] coordinates {
+  (5,1.04) (10,8.19) (15,26.96) (20,92.05)};
+\addlegendentry{proposed method (ms)}
+% OR-Tools CP-SAT exact geo-TSP
+\addplot[thick, mark=square*, mark size=2.4pt, black!55, dashed] coordinates {
+  (5,4.49) (10,10.71) (15,43.29) (20,715.84)};
+\addlegendentry{CP-SAT exact geo-optimal}
+% PyVRP baseline = solver time-limit plateau
+\addplot[gray, densely dotted, mark=none] coordinates {
+  (3,2000) (22,2000)};
+\addlegendentry{PyVRP baseline $\approx$ 2000\,ms (2\,s time limit, not a convergence time)}
+\end{semilogyaxis}
+\end{tikzpicture}
+\end{document}
