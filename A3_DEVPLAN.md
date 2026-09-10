@@ -210,6 +210,34 @@
 - [ ] 硬节点评审
 - [ ] 交底书评审（交付形态已定: 专利）
 
+**W9 附带: 精确解扩到 n≤20 + 自适应模式 (9/10 完成 ✅)**
+
+> 来源: 探索分支 `tw-feasibility` 的 STEP1/STEP2 (分层向量化 + 上界剪枝),
+> 验证有效后按"只搬已验证部分"的原则移植回主干。
+
+- [x] `a3_python/exact_battery.py` (新模块): 带电量约束的能量最优精确 DP
+      — 参照实现 (朴素三重循环) + 加速实现 (按 popcount 分层 + numpy 向量化
+        + 可采纳下界剪枝), 两者**逐位一致**
+      — `MAX_EXACT_BATTERY_POINTS` 由探索期 15 上调为 **20** (= `solver.MAX_TARGETS`)
+      — 实测: n=20 中位 **1.774 s** / 峰值 **155.8 MB** (原 pure-Python 三重循环 96.5 s),
+        即 MVP 上限内可**在线精确最优** (5 s 时限 / 250 MB 单请求预算内)
+      — **理论结论**: 电量约束在本问题里只是**可行性闸门** (累计能耗单调不减 ⇒
+        "任意时刻 ≤ cap" ⟺ "总能耗 ≤ cap"), 不改变最优序列; 精确解相对无约束 DP
+        的增量是"可行性判定 + 性能"
+      — 不修改 `exact.py` 任何既有函数 (向后兼容)
+- [x] `a3_python/adaptive.py` (新模块): `plan_multistop_adaptive()` 自适应入口
+      — `estimate_exact_resources()` / `choose_mode()`: 按 n 保守估算耗时与峰值内存
+        (以 n=20 实测为锚点的 2×/点 指数外推 + 固定开销 + 1.5 倍安全系数),
+        与传入预算比较后选精确模式或降级到 `solver.plan_multistop`
+      — **协同**: 精确模式以降级解的**精确能耗**作 `ub_override` 剪枝上界
+        (不能用 `RoutePlan.total_energy_consumed`, 其 2 位小数舍入可能低于真值)
+      — 模式标注追加在 `RoutePlan.warnings` (`"[adaptive] mode=..."`),
+        **未改** `RoutePlan` 字段定义 (A3_SCHEMA.md §1)
+- [x] 单测 **122 例** (test_exact_battery 21 + test_exact_battery_fast 72 + test_adaptive 29)
+      — 全量 **267 例**通过 (原 145 + 新增 122); Rust 侧 109 例保持通过
+      — `plan_multistop` 行为未变: 6 个 fixture 输出与 `solver_golden.json` 逐字段一致
+- [x] 文档同步: CLAUDE.md 项目结构 + 函数签名; 本 DEVPLAN; A3_REQUIREMENTS.md §6 指标
+
 ---
 
 ## W10-W13: 专利材料完善 + 定稿
@@ -257,12 +285,14 @@
 
 ## 当前状态
 
-**阶段**: W1 ✅ → W2 ✅ → W3 ✅ → W4 ✅ → W5 月1中检 ✅ → W6 Rust 骨架 ✅ → W7 纯函数+服务 ✅ → W8 交底书初稿 ✅ (自检/审阅中)
+**阶段**: W1 ✅ → W2 ✅ → W3 ✅ → W4 ✅ → W5 月1中检 ✅ → W6 Rust 骨架 ✅ → W7 纯函数+服务 ✅ → W8 交底书初稿 ✅ (经 R2/R3/R5 审阅与实审模拟修订) → W9 精确解扩至 n≤20 + 自适应模式 ✅ (9/10)
 **阻塞**: 无
-**下一步**: W8 收尾 — 初稿自检(R2) + 数据核对(R3) + 审阅(R5) → 修订 → W9 初稿验收
-  - 专利交底书初稿 (6 章节) — 实施例数据已就绪 (W5 指标表 + W7 Rust 交叉验证)
+**下一步**: W9 文档收口 — 交底书已按"自适应分级求解"重构完毕, 待:
+  - 交底书终审 (由代理师评估创造性) — 已知技术已主动承认, 主张落在架构组合
   - 代码清理 + 注释整理
   - 论文框架 (可选, 不做为交付要求)
+**备注 (W9)**: `plan_multistop_adaptive` 只支持 1 ≤ n ≤ 20 (两种模式同受
+  `solver.MAX_TARGETS` 约束); 若实施例需要 n > 20 的对照, 需另行放开启发式上限。
 
 **新流程**: 每阶段开始前先完成 A3_RESEARCH_PLAN.md 中的调研项，再写代码。
 
