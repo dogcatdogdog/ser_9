@@ -38,3 +38,6 @@ pyvrp-page-*
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Claude Code worktrees (本地产物, 不入库)
+.claude/worktrees/
