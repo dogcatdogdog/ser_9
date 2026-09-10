@@ -34,7 +34,7 @@
 | 正文位置 | 数字 | 出处 | 核对 |
 |---|---|---|---|
 | 3.3 | 总几何距离同为 3962.2 m；能耗 872.7 / 827.1 Wh，节省 5.2% | `fig4_data.json` → `geo_geo_dist`=3962.2, `our_geo_dist`=3962.2, `geo_opt.total_energy_wh`=872.71, `our.total_energy_wh`=827.08, `saved_pct`=5.2（基线分母口径）| ☐ |
-| 3.3(1) | 默认需求量 10 点实例总需求 63.8 kg > 50 kg 载重 | `A3_RESEARCH_PLAN.md:321-322`（circle n=10, scale=1000, demand_range=(1,10)） | ☐ |
+| 3.3(1) | 默认需求量 10 点实例总需求 63.8 kg > 50 kg 载重，几何最优序列不可行 | `scripts/overload_example.json`（gen_overload_example.py 可复现；circle n=10, scale=1000, seed=42, demand∈[1,10]） | ☐ |
 | 3.3(2) | 电量紧张场景 10 实例中求解器返回的几何最优路线 1 例电池耗尽（种子 9）；该回路存在可行方向 34979.2 m | `benchmark_20260819_105511.json` opt_geo_battery_feasible；JSON 复核 | ☐ |
 
 ## B. §六 效果
