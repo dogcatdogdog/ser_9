@@ -1,0 +1,55 @@
+% fig8_group_ablation — 分组消融（规模趋势）
+% 用途: 交底书 图8, §六: circle/random × 5/10/15/20 各变体相对成本(%), 看贡献随规模的趋势
+% 数据: results/table_20260819_105511.md「2. 消融矩阵」8 个分组 (full=100)
+%   固定载重(忽略载重耦合) 随规模上升: circle 101.7->102.4, random 102.1->114.6
+%   random_20p: 仅最近邻 105.2, 去Or-opt 103.1, 去2-opt 100.2
+% 规范: 全中文; 黑白(线型/点型区分)
+% 编译: bash docs/patent/build.sh
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[fontset=windows]{ctex}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots}
+\begin{document}
+\begin{tikzpicture}
+\begin{groupplot}[
+  group style={group size=2 by 1, horizontal sep=1.6cm},
+  width=8.2cm, height=7.6cm,
+  xmin=4, xmax=21, xtick={5,10,15,20},
+  ymin=99.5, ymax=116,
+  grid=both, grid style={gray!22},
+  xlabel={目标点数 $N$},
+  label style={font=\small}, tick label style={font=\small},
+  legend style={at={(0.03,0.97)},anchor=north west,font=\small,draw=none,fill=none},
+]
+% ---------------- 左：circle 分布 ----------------
+\nextgroupplot[ylabel={相对总等效电量距离（\%）}, title={\small（a）圆形分布}]
+\addplot[thick, mark=*, mark size=2.4pt, black] coordinates {
+  (5,100.4)(10,100.1)(15,100.0)(20,100.1)};
+\addlegendentry{仅最近邻}
+\addplot[thick, mark=square*, mark size=2.2pt, black!65, dashed] coordinates {
+  (5,100.3)(10,100.1)(15,100.0)(20,100.1)};
+\addlegendentry{去 Or-opt}
+\addplot[thick, mark=triangle*, mark size=2.6pt, black!40, dotted] coordinates {
+  (5,100.1)(10,100.0)(15,100.0)(20,100.0)};
+\addlegendentry{去 2-opt}
+\addplot[very thick, mark=diamond*, mark size=2.6pt, black] coordinates {
+  (5,101.7)(10,101.7)(15,102.3)(20,102.4)};
+\addlegendentry{固定载重（忽略耦合）}
+\draw[densely dashed, black!55] (axis cs:4,100) -- (axis cs:21,100);
+
+% ---------------- 右：random 分布 ----------------
+\nextgroupplot[title={\small（b）随机分布}]
+\addplot[thick, mark=*, mark size=2.4pt, black] coordinates {
+  (5,101.5)(10,102.8)(15,101.5)(20,105.2)};
+\addplot[thick, mark=square*, mark size=2.2pt, black!65, dashed] coordinates {
+  (5,100.0)(10,100.2)(15,100.2)(20,103.1)};
+\addplot[thick, mark=triangle*, mark size=2.6pt, black!40, dotted] coordinates {
+  (5,100.9)(10,101.9)(15,100.0)(20,100.2)};
+\addplot[very thick, mark=diamond*, mark size=2.6pt, black] coordinates {
+  (5,102.1)(10,103.3)(15,102.9)(20,114.6)};
+\draw[densely dashed, black!55] (axis cs:4,100) -- (axis cs:21,100);
+\end{groupplot}
+\end{tikzpicture}
+\end{document}

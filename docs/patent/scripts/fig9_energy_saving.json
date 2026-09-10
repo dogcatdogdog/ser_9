@@ -1,0 +1,118 @@
+{
+  "groups": [
+    {
+      "label": "circle_5",
+      "kind": "circle",
+      "n": 5,
+      "count": 10,
+      "mean": -1.66,
+      "std": 1.35,
+      "min": -3.8,
+      "max": 0.0
+    },
+    {
+      "label": "circle_10",
+      "kind": "circle",
+      "n": 10,
+      "count": 10,
+      "mean": -1.69,
+      "std": 1.5,
+      "min": -5.3,
+      "max": -0.1
+    },
+    {
+      "label": "circle_15",
+      "kind": "circle",
+      "n": 15,
+      "count": 10,
+      "mean": -3.06,
+      "std": 2.11,
+      "min": -7.8,
+      "max": -0.2
+    },
+    {
+      "label": "circle_20",
+      "kind": "circle",
+      "n": 20,
+      "count": 10,
+      "mean": -2.34,
+      "std": 1.23,
+      "min": -4.5,
+      "max": -0.4
+    },
+    {
+      "label": "random_5",
+      "kind": "random",
+      "n": 5,
+      "count": 10,
+      "mean": -1.11,
+      "std": 2.02,
+      "min": -6.4,
+      "max": 0.0
+    },
+    {
+      "label": "random_10",
+      "kind": "random",
+      "n": 10,
+      "count": 10,
+      "mean": -4.6,
+      "std": 4.49,
+      "min": -12.8,
+      "max": 0.0
+    },
+    {
+      "label": "random_15",
+      "kind": "random",
+      "n": 15,
+      "count": 10,
+      "mean": -3.55,
+      "std": 6.02,
+      "min": -11.6,
+      "max": 6.6
+    },
+    {
+      "label": "random_20",
+      "kind": "random",
+      "n": 20,
+      "count": 10,
+      "mean": -5.24,
+      "std": 5.05,
+      "min": -11.4,
+      "max": 5.2
+    },
+    {
+      "label": "tight_10",
+      "kind": "tight",
+      "n": 10,
+      "count": 9,
+      "mean": -1.98,
+      "std": 1.69,
+      "min": -4.2,
+      "max": 0.0
+    },
+    {
+      "label": "Solomon",
+      "kind": "solomon",
+      "n": 20,
+      "count": 3,
+      "mean": -7.83,
+      "std": 7.41,
+      "min": -16.2,
+      "max": -2.1
+    }
+  ],
+  "solomon": [
+    {
+      "label": "r101",
+      "gap_eng": -5.2
+    },
+    {
+      "label": "c101",
+      "gap_eng": -2.1
+    },
+    {
+      "label": "rc101",
+      "gap_eng": -16.2
+    }
+  ]
+}
