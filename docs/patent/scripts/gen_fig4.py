@@ -78,7 +78,8 @@ def main():
         if geo.sequence == list(our.sequence):
             continue
 
-        saved = (equiv_geo - our.total_equiv_distance) / our.total_equiv_distance
+        # 口径与主表 Gap_eng% 一致: 以基线(几何最优序列的能量成本)为分母
+        saved = (equiv_geo - our.total_equiv_distance) / equiv_geo
         if 0.03 <= saved <= 0.30:
             eng = solve_energy_exact_dp(targets, home, drone)  # 能量精确最优(参考)
             data = {
