@@ -16,7 +16,8 @@
   width=13cm, height=7.6cm,
   xlabel={出发载重 $L$（kg）},
   ylabel={单位距离能耗率 $\rho$（Wh/m）},
-  xmin=0, xmax=54, ymin=0.05, ymax=0.40,
+  xmin=0, xmax=56, ymin=0.05, ymax=0.40,
+  clip=false,
   grid=both, grid style={gray!22},
   label style={font=\small}, tick label style={font=\small},
   legend style={at={(0.02,0.98)},anchor=north west,draw=none,fill=none,font=\small},
@@ -33,11 +34,11 @@
 \draw[densely dashed, gray] (axis cs:20,0.10) -- (axis cs:45,0.10);
 \draw[densely dashed, gray] (axis cs:45,0.10) -- (axis cs:45,0.325);
 \node[font=\small,anchor=north] at (axis cs:32.5,0.098) {$\beta\cdot\Delta L$};
-\node[font=\small,anchor=west] at (axis cs:45.8,0.21) {$\beta$（载重敏感系数）};
+\node[font=\small,anchor=west] at (axis cs:45.6,0.225) {$\beta$（载重敏感系数）};
 
 % --- 满载端 ---
 \filldraw (axis cs:50,0.35) circle (1.8pt);
-\node[font=\small,anchor=west] at (axis cs:50.8,0.35) {满载};
+\node[font=\small,anchor=south east] at (axis cs:49.6,0.353) {满载};
 \end{axis}
 \end{tikzpicture}
 \end{document}

@@ -1,7 +1,8 @@
 % fig5_two_opt — 2-opt 翻转与受影响段（增量电量校验，创新点 3）
 % 用途: 交底书 图5, §五 S3: 翻转 b..d 子段, 只需重算受影响边与子段内部 -> O(|S|+2)
 % 对应: heuristic.py _try_2opt_move (a3_python/heuristic.py:478-557)
-% 规范: 全中文/字母标记; 黑白(线型区分: 细灰=未变, 虚线=子段, 粗实=重连)
+% 规范: 全中文/字母标记; 黑白(线型区分: 细灰=未变, 虚线=子段内部, 粗实=重连)
+% 绘制顺序: 先连线后画节点, 避免线条遮挡字母
 % 编译: bash docs/patent/build.sh
 \documentclass[tikz,border=8pt]{standalone}
 \usepackage[fontset=windows]{ctex}
@@ -10,40 +11,42 @@
 \begin{document}
 \begin{tikzpicture}[font=\small,
   pt/.style={circle,draw,fill=white,inner sep=0pt,minimum size=0.58cm},
-  hpt/.style={rectangle,draw,fill=black,text=white,inner sep=1pt,minimum width=0.95cm,minimum height=0.52cm,font=\scriptsize},
   sub/.style={circle,draw,fill=gray!25,inner sep=0pt,minimum size=0.58cm},
+  hpt/.style={rectangle,draw,fill=white,inner sep=1pt,minimum width=0.95cm,minimum height=0.52cm,font=\scriptsize},
 ]
-% ---------------- 翻转前 ----------------
-\coordinate (A1) at (0,0);  \coordinate (a1) at (2,0);
-\coordinate (b1) at (4,0);  \coordinate (c1) at (6,0);
-\coordinate (d1) at (8,0);  \coordinate (e1) at (10,0);
+% ================= 翻转前 =================
+\coordinate (A1) at (0,0);   \coordinate (a1) at (2,0);
+\coordinate (b1) at (4,0);   \coordinate (c1) at (6,0);
+\coordinate (d1) at (8,0);   \coordinate (e1) at (10,0);
 \coordinate (A2) at (12,0);
+% --- 连线（先画）---
+\draw[gray,line width=1.0pt]        (A1)--(a1);
+\draw[black,line width=1.8pt]       (a1)--(b1);
+\draw[black,dashed,line width=1.4pt](b1)--(c1) (c1)--(d1);
+\draw[black,line width=1.8pt]       (d1)--(e1);
+\draw[gray,line width=1.0pt]        (e1)--(A2);
+% --- 节点（后画，压在线上）---
 \node[hpt] at (A1) {仓库}; \node[pt] at (a1) {a};
-\node[sub] at (b1) {b}; \node[sub] at (c1) {c}; \node[sub] at (d1) {d};
-\node[pt] at (e1) {e}; \node[hpt] at (A2) {仓库};
-\draw[gray,line width=1.0pt]  (A1)--(a1);
-\draw[black,line width=1.8pt] (a1)--(b1);
-\draw[black,dashed,line width=1.4pt] (b1)--(c1) (c1)--(d1);
-\draw[black,line width=1.8pt] (d1)--(e1);
-\draw[gray,line width=1.0pt]  (e1)--(A2);
+\node[sub] at (b1) {b};    \node[sub] at (c1) {c}; \node[sub] at (d1) {d};
+\node[pt] at (e1) {e};     \node[hpt] at (A2) {仓库};
 \node[anchor=north,font=\footnotesize] at (6,0.05) {翻转前};
 
-% ---------------- 翻转后 ----------------
-\coordinate (B1) at (0,-4.2);  \coordinate (a2) at (2,-4.2);
-\coordinate (d2) at (4,-4.2);  \coordinate (c2) at (6,-4.2);
-\coordinate (b2) at (8,-4.2);  \coordinate (e2) at (10,-4.2);
+% ================= 翻转后 =================
+\coordinate (B1) at (0,-4.2); \coordinate (a2) at (2,-4.2);
+\coordinate (d2) at (4,-4.2); \coordinate (c2) at (6,-4.2);
+\coordinate (b2) at (8,-4.2); \coordinate (e2) at (10,-4.2);
 \coordinate (B2) at (12,-4.2);
+\draw[gray,line width=1.0pt]        (B1)--(a2);
+\draw[black,line width=1.8pt]       (a2)--(d2);
+\draw[black,dashed,line width=1.4pt](d2)--(c2) (c2)--(b2);
+\draw[black,line width=1.8pt]       (b2)--(e2);
+\draw[gray,line width=1.0pt]        (e2)--(B2);
 \node[hpt] at (B1) {仓库}; \node[pt] at (a2) {a};
-\node[sub] at (d2) {d}; \node[sub] at (c2) {c}; \node[sub] at (b2) {b};
-\node[pt] at (e2) {e}; \node[hpt] at (B2) {仓库};
-\draw[gray,line width=1.0pt]  (B1)--(a2);
-\draw[black,line width=1.8pt] (a2)--(d2);
-\draw[black,dashed,line width=1.4pt] (d2)--(c2) (c2)--(b2);
-\draw[black,line width=1.8pt] (b2)--(e2);
-\draw[gray,line width=1.0pt]  (e2)--(B2);
+\node[sub] at (d2) {d};    \node[sub] at (c2) {c}; \node[sub] at (b2) {b};
+\node[pt] at (e2) {e};     \node[hpt] at (B2) {仓库};
 \node[anchor=north,font=\footnotesize] at (6,-4.15) {翻转后};
 
-% ---------------- 翻转动作 ----------------
+% ================= 翻转动作 =================
 \draw[->,thick] (6,-0.95) -- (6,-3.15) node[midway,right,font=\footnotesize] {翻转子段 b--c--d};
 \end{tikzpicture}
 \end{document}
