@@ -17,14 +17,14 @@
 ]
 \node[io] (inp) {输入：目标点集合（坐标、需求量）、仓库位置、无人机参数（$\alpha$、$\beta$、载重上限、电池容量）};
 
-\node[box,below=0.72cm of inp] (s1) {S1\quad 构建等效电量距离矩阵\\[2pt]
+\node[box,below=0.72cm of inp] (s1) {S1\quad 载重感知等效电量距离（逐段按出发载重求值）\\[2pt]
   $\mathrm{EED}(i,j,L)=d_{ij}\cdot\dfrac{\alpha+\beta L}{\alpha}$\quad（$L$ 为出发时载重）};
 
 \node[box,below=0.72cm of s1] (s2) {S2\quad 电量感知最近邻构造（N 起点）\\[2pt]
   载重预检：总需求 $>$ 载重上限则判定不可行；每步要求往返电量可行};
 
 \node[box,below=0.72cm of s2] (s3) {S3\quad 增量局部搜索：2-opt 与 Or-opt 交替\\[2pt]
-  首次改进接受；每次候选移动做增量载重与电量校验};
+  首次改进接受；每次候选移动仅按受影响段做增量电量校验（载重由预检保证）};
 
 \node[box,below=0.72cm of s3] (s4) {S4\quad 逐段全量后验证（载重与能耗）};
 
