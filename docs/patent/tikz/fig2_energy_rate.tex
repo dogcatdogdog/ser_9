@@ -1,43 +1,43 @@
-% fig2_energy_rate — energy rate vs load, three drone presets
-% 用途: 交底书 图2, §五 载重-能耗耦合模型 (创新点2 的物理基础)
-% 数据: DRONE_PRESETS (a3_python/route.py:68-90):
-%   light:    alpha 0.15 Wh/m, beta 0.010 Wh/m/kg, cap 5    kg
-%   standard: alpha 0.10 Wh/m, beta 0.005 Wh/m/kg, cap 50   kg
-%   heavy:    alpha 0.08 Wh/m, beta 0.002 Wh/m/kg, cap 500  kg
-% 模型: rho(L) = alpha + beta*L
-% 编译: latexmk -pdf -xelatex fig2_energy_rate.tex
+% fig2_energy_rate — 单位距离能耗率随载重线性增长（标准机型）
+% 用途: 交底书 图2, §五: 载重-能耗耦合模型 rho(L)=alpha+beta*L
+% 数据: DRONE_PRESETS standard (a3_python/route.py:76-82):
+%   alpha=0.10 Wh/m, beta=0.005 Wh/m/kg, payload_capacity=50 kg
+% 说明: 仅画标准机型, 讲清"截距 alpha / 斜率 beta"一个模型;
+%       三机型参数差异见 §八 机型参数表, 不挤入本图 (避免 5/50/500 kg 量级不可比)
+% 编译: bash docs/patent/build.sh
 \documentclass[tikz,border=8pt]{standalone}
+\usepackage[fontset=windows]{ctex}
 \usepackage{amsmath}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \begin{document}
 \begin{tikzpicture}
 \begin{axis}[
-  width=13cm, height=7.5cm,
-  xlabel={payload at departure $L$ (kg)}, ylabel={energy rate $\rho(L)$ (Wh/m)},
-  xmin=0, xmax=55, ymin=0.05, ymax=0.42,
-  grid=both, grid style={gray!25},
-  legend style={at={(0.02,0.98)},anchor=north west,draw=none,fill=none,font=\small},
-  title={\textbf{$\rho(L)=\alpha+\beta L$: linear load-dependent energy rate}},
+  width=13cm, height=7.6cm,
+  xlabel={出发载重 $L$（kg）},
+  ylabel={单位距离能耗率 $\rho$（Wh/m）},
+  xmin=0, xmax=54, ymin=0.05, ymax=0.40,
+  grid=both, grid style={gray!22},
   label style={font=\small}, tick label style={font=\small},
+  legend style={at={(0.02,0.98)},anchor=north west,draw=none,fill=none,font=\small},
 ]
-% standard (baseline): alpha=0.10, beta=0.005, cap 50 -> to L=50
-\addplot[thick, domain=0:50, samples=40] {0.10 + 0.005*x};
-\addlegendentry{standard: $\alpha{=}0.10,\ \beta{=}0.005,\ cap{=}50$}
-% light: alpha=0.15, beta=0.01, cap 5
-\addplot[dashed, domain=0:5, samples=20] {0.15 + 0.01*x};
-\addlegendentry{light: $\alpha{=}0.15,\ \beta{=}0.010,\ cap{=}5$}
-% heavy: alpha=0.08, beta=0.002, cap 500 (show 0..55 only, slope is small)
-\addplot[dotted, domain=0:55, samples=40] {0.08 + 0.002*x};
-\addlegendentry{heavy: $\alpha{=}0.08,\ \beta{=}0.002,\ cap{=}500$}
+% rho(L) = 0.10 + 0.005 L ,  L in [0,50]
+\addplot[thick, domain=0:50, samples=50] {0.10 + 0.005*x};
+\addlegendentry{标准机型：$\alpha=0.1$，$\beta=0.005$，载重上限 50 kg}
 
-% annotations: alpha intercept & full-load point for standard
-\draw[densely dashed, gray] (axis cs:0,0.10) -- (axis cs:50,0.10);
-\draw[->, gray] (axis cs:34,0.10) -- (axis cs:34,0.35) node[midway,right,font=\small]{$\beta\,L$ (load penalty)};
-\node[font=\small] at (axis cs:5,0.105) {$\alpha$ (empty-load rate)};
-\filldraw (axis cs:0,0.10) circle (1.6pt);
-\filldraw (axis cs:50,0.35) circle (1.6pt);
-\node[font=\small,anchor=west] at (axis cs:51.5,0.35) {full load};
+% --- 截距 alpha：L=0 ---
+\filldraw (axis cs:0,0.10) circle (1.8pt);
+\node[font=\small,anchor=north west] at (axis cs:0.8,0.093) {$\alpha$（空载能耗率）};
+
+% --- 斜率 beta：直角三角形示意 beta = 上升/水平 ---
+\draw[densely dashed, gray] (axis cs:20,0.10) -- (axis cs:45,0.10);
+\draw[densely dashed, gray] (axis cs:45,0.10) -- (axis cs:45,0.325);
+\node[font=\small,anchor=north] at (axis cs:32.5,0.098) {$\beta\cdot\Delta L$};
+\node[font=\small,anchor=west] at (axis cs:45.8,0.21) {$\beta$（载重敏感系数）};
+
+% --- 满载端 ---
+\filldraw (axis cs:50,0.35) circle (1.8pt);
+\node[font=\small,anchor=west] at (axis cs:50.8,0.35) {满载};
 \end{axis}
 \end{tikzpicture}
 \end{document}
