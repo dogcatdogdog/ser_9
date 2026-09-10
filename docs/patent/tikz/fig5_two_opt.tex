@@ -1,6 +1,6 @@
-% fig5_two_opt — 2-opt 翻转与受影响段（增量电量校验，创新点 3）
-% 用途: 交底书 图5, §五 S3: 翻转 b..d 子段, 只需重算受影响边与子段内部 -> O(|S|+2)
-% 对应: heuristic.py _try_2opt_move (a3_python/heuristic.py:478-557)
+% fig5_two_opt — 2-opt 翻转与受影响段（增量电量校验，实施细节）
+% 用途: 交底书 图5, §五 S3: 翻转 b..d 子段, 只需重算受影响边与子段内部 -> O(l)+2
+% 记法: p = 被翻转子段首点 a 的前驱点; q = 子段末点 e 的后继点（不以“仓库”示意）
 % 规范: 全中文/字母标记; 黑白(线型区分: 细灰=未变, 虚线=子段内部, 粗实=重连)
 % 绘制顺序: 先连线后画节点, 避免线条遮挡字母
 % 编译: bash docs/patent/build.sh
@@ -12,7 +12,6 @@
 \begin{tikzpicture}[font=\small,
   pt/.style={circle,draw,fill=white,inner sep=0pt,minimum size=0.58cm},
   sub/.style={circle,draw,fill=gray!25,inner sep=0pt,minimum size=0.58cm},
-  hpt/.style={rectangle,draw,fill=white,inner sep=1pt,minimum width=0.95cm,minimum height=0.52cm,font=\scriptsize},
 ]
 % ================= 翻转前 =================
 \coordinate (A1) at (0,0);   \coordinate (a1) at (2,0);
@@ -26,9 +25,9 @@
 \draw[black,line width=1.8pt]       (d1)--(e1);
 \draw[gray,line width=1.0pt]        (e1)--(A2);
 % --- 节点（后画，压在线上）---
-\node[hpt] at (A1) {仓库}; \node[pt] at (a1) {a};
+\node[pt] at (A1) {p};      \node[pt] at (a1) {a};
 \node[sub] at (b1) {b};    \node[sub] at (c1) {c}; \node[sub] at (d1) {d};
-\node[pt] at (e1) {e};     \node[hpt] at (A2) {仓库};
+\node[pt] at (e1) {e};     \node[pt] at (A2) {q};
 \node[anchor=north,font=\footnotesize] at (6,0.05) {翻转前};
 
 % ================= 翻转后 =================
@@ -41,9 +40,9 @@
 \draw[black,dashed,line width=1.4pt](d2)--(c2) (c2)--(b2);
 \draw[black,line width=1.8pt]       (b2)--(e2);
 \draw[gray,line width=1.0pt]        (e2)--(B2);
-\node[hpt] at (B1) {仓库}; \node[pt] at (a2) {a};
+\node[pt] at (B1) {p};      \node[pt] at (a2) {a};
 \node[sub] at (d2) {d};    \node[sub] at (c2) {c}; \node[sub] at (b2) {b};
-\node[pt] at (e2) {e};     \node[hpt] at (B2) {仓库};
+\node[pt] at (e2) {e};     \node[pt] at (B2) {q};
 \node[anchor=north,font=\footnotesize] at (6,-4.15) {翻转后};
 
 % ================= 翻转动作 =================

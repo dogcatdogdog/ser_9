@@ -3,10 +3,11 @@
 % 数据: results/table_20260819_105511.md「3. 规模扩展时间曲线」:
 %   本方法（降级模式/启发式） 1.04 / 8.19 / 26.96 / 92.05 ms
 %   CP-SAT 几何精确解 4.49 / 10.71 / 43.29 / 715.84 ms
-%   PyVRP 约 2000 ms（固定 2 s 时限截断，非收敛时间）
+%   PyVRP 约 2000 ms（固定 2 s 求解时限下的取值）
 %   W9 精确模式（分层向量化+上界剪枝） n=14..20: 53/71/112/206/421/743/1774 ms
 %     （docs/exploration/STEP2_THRESHOLD.md §1 耗时中位；原纯 Python 实现 n=20 需 96520 ms）
-% 变更 (W9 重构): 加入精确模式耗时曲线与"精确/降级"阈值分界线 (N=20)
+% 变更 (W9 重构): 加入精确模式耗时曲线与"精确/降级"阈值分界线 (n=20)
+% 变更 (编号统一): 横轴符号统一为 n（交底书符号表）；PyVRP 曲线的可比性说明已移入交底书 §6.4 正文
 % 规范: 全中文; 黑白; 去标题(见 FIGURES.md 图注)
 % 编译: bash docs/patent/build.sh
 \documentclass[tikz,border=8pt]{standalone}
@@ -18,7 +19,7 @@
 \begin{tikzpicture}
 \begin{semilogyaxis}[
   width=13.5cm, height=8cm,
-  xlabel={目标点数 $N$},
+  xlabel={目标点数 $n$},
   ylabel={单实例平均求解时间（ms）},
   xmin=3, xmax=23, ymin=0.8, ymax=5000,
   xtick={5,10,14,15,16,17,18,19,20},
@@ -36,11 +37,11 @@
   (5,4.49) (10,10.71) (15,43.29) (20,715.84)};
 \addlegendentry{CP-SAT 几何精确解}
 \addplot[gray, densely dotted, mark=none] coordinates {(3,2000) (23,2000)};
-\addlegendentry{PyVRP 基线（2 s 时限截断）}
-% 精确/降级阈值分界线（N=20，MVP 上限内精确；超出走降级）
+\addlegendentry{PyVRP 基线（固定 2 s 求解时限）}
+% 精确/降级阈值分界线（n=20，适用规模内精确；超出走降级）
 \draw[dashed, thick, black!55] (axis cs:20.5,0.8) -- (axis cs:20.5,5000);
 \addlegendimage{line legend, dashed, thick, black!55}
-\addlegendentry{精确/降级分界（$N{=}20$）}
+\addlegendentry{精确/降级分界（$n{=}20$）}
 \node[font=\scriptsize,anchor=north] at (axis cs:19.6,0.90) {精确};
 \node[font=\scriptsize,anchor=north] at (axis cs:21.4,0.90) {降级};
 \end{semilogyaxis}
