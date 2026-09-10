@@ -1,0 +1,61 @@
+% fig9_energy_saving — 能量感知优化相对几何最优的省电幅度
+% 用途: 交底书 图9, §六 有益效果: 省电随规模增长, Solomon 上最大
+% 数据: results/table_20260819_105511.md 主表 Gap_eng% 列 (负值 = 本方法更省电)
+%   circle  5/10/15/20: -1.66±1.35 / -1.69±1.50 / -3.06±2.11 / -2.34±1.23  (各 10 实例)
+%   random  5/10/15/20: -1.11±2.02 / -4.60±4.49 / -3.55±6.02 / -5.24±5.05  (各 10 实例)
+%   tight_10: -1.98±1.69 (9 实例, 排除 1 个不可行)
+%   Solomon n=20: r101 -5.2 / c101 -2.1 / rc101 -16.2 (均值 -7.83)
+% 规范: 全中文; 黑白; 误差棒为 ±1 标准差
+% 编译: bash docs/patent/build.sh
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[fontset=windows]{ctex}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots}
+\begin{document}
+\begin{tikzpicture}
+\begin{groupplot}[
+  group style={group size=2 by 1, horizontal sep=1.8cm, widths/.initial=8.2cm},
+  width=8.4cm, height=7.8cm,
+  label style={font=\small}, tick label style={font=\small},
+  grid=both, grid style={gray!22},
+  legend style={at={(0.03,0.03)},anchor=south west,font=\small,draw=none,fill=none},
+]
+% ---------------- 左：省电幅度随规模 ----------------
+\nextgroupplot[
+  ylabel={相对几何最优的能耗节省（\%）},
+  xlabel={目标点数 $n$},
+  xmin=4, xmax=21, xtick={5,10,15,20},
+  ymin=-7, ymax=3,
+  title={\small（a）省电幅度随规模变化（误差棒 ±1 标准差）},
+]
+\addplot[thick, mark=*, mark size=2.6pt, black,
+         error bars/.cd, y dir=both, y explicit] coordinates {
+  (5,-1.66) +- (0,1.35) (10,-1.69) +- (0,1.50)
+  (15,-3.06) +- (0,2.11) (20,-2.34) +- (0,1.23)};
+\addlegendentry{圆形分布}
+\addplot[thick, mark=square*, mark size=2.4pt, black!65, dashed,
+         error bars/.cd, y dir=both, y explicit] coordinates {
+  (5,-1.11) +- (0,2.02) (10,-4.60) +- (0,4.49)
+  (15,-3.55) +- (0,6.02) (20,-5.24) +- (0,5.05)};
+\addlegendentry{随机分布}
+\draw[densely dashed, black!55] (axis cs:4,0) -- (axis cs:21,0);
+\node[anchor=north west,font=\footnotesize] at (axis cs:4.2,-0.3) {0（与几何最优持平）};
+
+% ---------------- 右：典型实例（Solomon 前 20 点 / 电量紧张） ----------------
+\nextgroupplot[
+  ylabel={能耗节省（\%）},
+  xmin=0.3, xmax=4.7,
+  xtick={1,2,3,4},
+  xticklabels={R101, C101, RC101, 电量紧张},
+  ymin=-18, ymax=2,
+  title={\small（b）典型实例（前 20 点 / 电量紧张 10 点）},
+  x tick label style={font=\small},
+]
+\addplot[ybar, bar width=0.5, draw=black!75, fill=gray!55] coordinates {
+  (1,-5.2) (2,-2.1) (3,-16.2) (4,-1.98)};
+\draw[densely dashed, black!55] (axis cs:0.3,0) -- (axis cs:4.7,0);
+\end{groupplot}
+\end{tikzpicture}
+\end{document}

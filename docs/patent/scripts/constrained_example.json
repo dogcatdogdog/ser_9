@@ -1,0 +1,740 @@
+{
+  "n": 10,
+  "distribution": "circle",
+  "scale": 3000.0,
+  "seed": 0,
+  "home": {
+    "x": 0.0,
+    "y": 0.0
+  },
+  "drone": {
+    "alpha": 0.1,
+    "beta": 0.005,
+    "payload_capacity": 50.0,
+    "battery_capacity": 3500.0
+  },
+  "total_demand": 21.0,
+  "budget_equiv_m": 35000.0,
+  "targets": [
+    {
+      "id": "t1",
+      "x": 3000.0,
+      "y": 0.0,
+      "demand": 2.3
+    },
+    {
+      "id": "t2",
+      "x": 2427.1,
+      "y": 1763.4,
+      "demand": 1.5
+    },
+    {
+      "id": "t3",
+      "x": 927.1,
+      "y": 2853.2,
+      "demand": 1.1
+    },
+    {
+      "id": "t4",
+      "x": -927.1,
+      "y": 2853.2,
+      "demand": 1.0
+    },
+    {
+      "id": "t5",
+      "x": -2427.1,
+      "y": 1763.4,
+      "demand": 2.6
+    },
+    {
+      "id": "t6",
+      "x": -3000.0,
+      "y": 0.0,
+      "demand": 2.8
+    },
+    {
+      "id": "t7",
+      "x": -2427.1,
+      "y": -1763.4,
+      "demand": 2.2
+    },
+    {
+      "id": "t8",
+      "x": -927.1,
+      "y": -2853.2,
+      "demand": 2.5
+    },
+    {
+      "id": "t9",
+      "x": 927.1,
+      "y": -2853.2,
+      "demand": 2.1
+    },
+    {
+      "id": "t10",
+      "x": 2427.1,
+      "y": -1763.4,
+      "demand": 2.9
+    }
+  ],
+  "our_seq": [
+    "t10",
+    "t9",
+    "t8",
+    "t7",
+    "t6",
+    "t5",
+    "t4",
+    "t3",
+    "t2",
+    "t1"
+  ],
+  "our": {
+    "total_geo": 22687.2,
+    "total_equiv": 33652.4,
+    "total_energy_wh": 3365.25,
+    "remaining_wh": 134.75,
+    "budget_equiv": 35000.0,
+    "equiv_usage_pct": 96.1,
+    "feasible": true,
+    "warnings": [],
+    "segments": [
+      {
+        "from": "home",
+        "to": "t10",
+        "geo": 3000.1,
+        "equiv": 6150.1,
+        "energy": 615.01,
+        "payload_before": 21.0,
+        "battery_before": 3500.0,
+        "battery_after": 2885.0
+      },
+      {
+        "from": "t10",
+        "to": "t9",
+        "geo": 1854.1,
+        "equiv": 3532.1,
+        "energy": 353.2,
+        "payload_before": 18.1,
+        "battery_before": 2885.0,
+        "battery_after": 2531.8
+      },
+      {
+        "from": "t9",
+        "to": "t8",
+        "geo": 1854.2,
+        "equiv": 3337.6,
+        "energy": 333.76,
+        "payload_before": 16.0,
+        "battery_before": 2531.8,
+        "battery_after": 2198.0
+      },
+      {
+        "from": "t8",
+        "to": "t7",
+        "geo": 1854.1,
+        "equiv": 3105.6,
+        "energy": 310.56,
+        "payload_before": 13.5,
+        "battery_before": 2198.0,
+        "battery_after": 1887.5
+      },
+      {
+        "from": "t7",
+        "to": "t6",
+        "geo": 1854.1,
+        "equiv": 2901.7,
+        "energy": 290.17,
+        "payload_before": 11.3,
+        "battery_before": 1887.5,
+        "battery_after": 1597.3
+      },
+      {
+        "from": "t6",
+        "to": "t5",
+        "geo": 1854.1,
+        "equiv": 2642.1,
+        "energy": 264.21,
+        "payload_before": 8.5,
+        "battery_before": 1597.3,
+        "battery_after": 1333.1
+      },
+      {
+        "from": "t5",
+        "to": "t4",
+        "geo": 1854.1,
+        "equiv": 2401.1,
+        "energy": 240.11,
+        "payload_before": 5.9,
+        "battery_before": 1333.1,
+        "battery_after": 1093.0
+      },
+      {
+        "from": "t4",
+        "to": "t3",
+        "geo": 1854.2,
+        "equiv": 2308.5,
+        "energy": 230.85,
+        "payload_before": 4.9,
+        "battery_before": 1093.0,
+        "battery_after": 862.1
+      },
+      {
+        "from": "t3",
+        "to": "t2",
+        "geo": 1854.1,
+        "equiv": 2206.4,
+        "energy": 220.64,
+        "payload_before": 3.8,
+        "battery_before": 862.1,
+        "battery_after": 641.5
+      },
+      {
+        "from": "t2",
+        "to": "t1",
+        "geo": 1854.1,
+        "equiv": 2067.3,
+        "energy": 206.74,
+        "payload_before": 2.3,
+        "battery_before": 641.5,
+        "battery_after": 434.8
+      },
+      {
+        "from": "t1",
+        "to": "home",
+        "geo": 3000.0,
+        "equiv": 3000.0,
+        "energy": 300.0,
+        "payload_before": 0.0,
+        "battery_before": 434.8,
+        "battery_after": 134.8
+      }
+    ]
+  },
+  "geo_opt_seq_fwd": [
+    "t4",
+    "t5",
+    "t6",
+    "t7",
+    "t8",
+    "t9",
+    "t10",
+    "t1",
+    "t2",
+    "t3"
+  ],
+  "geo_opt_fwd": {
+    "total_geo": 22687.2,
+    "total_equiv": 34245.7,
+    "total_energy_wh": 3424.57,
+    "remaining_wh": 75.43,
+    "budget_equiv": 35000.0,
+    "equiv_usage_pct": 97.8,
+    "feasible": true,
+    "warnings": [],
+    "segments": [
+      {
+        "from": "home",
+        "to": "t4",
+        "geo": 3000.0,
+        "equiv": 6150.1,
+        "energy": 615.01,
+        "payload_before": 21.0,
+        "battery_before": 3500.0,
+        "battery_after": 2885.0
+      },
+      {
+        "from": "t4",
+        "to": "t5",
+        "geo": 1854.1,
+        "equiv": 3708.2,
+        "energy": 370.82,
+        "payload_before": 20.0,
+        "battery_before": 2885.0,
+        "battery_after": 2514.2
+      },
+      {
+        "from": "t5",
+        "to": "t6",
+        "geo": 1854.1,
+        "equiv": 3467.2,
+        "energy": 346.72,
+        "payload_before": 17.4,
+        "battery_before": 2514.2,
+        "battery_after": 2167.4
+      },
+      {
+        "from": "t6",
+        "to": "t7",
+        "geo": 1854.1,
+        "equiv": 3207.6,
+        "energy": 320.76,
+        "payload_before": 14.6,
+        "battery_before": 2167.4,
+        "battery_after": 1846.7
+      },
+      {
+        "from": "t7",
+        "to": "t8",
+        "geo": 1854.1,
+        "equiv": 3003.6,
+        "energy": 300.36,
+        "payload_before": 12.4,
+        "battery_before": 1846.7,
+        "battery_after": 1546.3
+      },
+      {
+        "from": "t8",
+        "to": "t9",
+        "geo": 1854.2,
+        "equiv": 2772.0,
+        "energy": 277.2,
+        "payload_before": 9.9,
+        "battery_before": 1546.3,
+        "battery_after": 1269.1
+      },
+      {
+        "from": "t9",
+        "to": "t10",
+        "geo": 1854.1,
+        "equiv": 2577.2,
+        "energy": 257.72,
+        "payload_before": 7.8,
+        "battery_before": 1269.1,
+        "battery_after": 1011.4
+      },
+      {
+        "from": "t10",
+        "to": "t1",
+        "geo": 1854.1,
+        "equiv": 2308.4,
+        "energy": 230.84,
+        "payload_before": 4.9,
+        "battery_before": 1011.4,
+        "battery_after": 780.6
+      },
+      {
+        "from": "t1",
+        "to": "t2",
+        "geo": 1854.1,
+        "equiv": 2095.2,
+        "energy": 209.52,
+        "payload_before": 2.6,
+        "battery_before": 780.6,
+        "battery_after": 571.0
+      },
+      {
+        "from": "t2",
+        "to": "t3",
+        "geo": 1854.1,
+        "equiv": 1956.1,
+        "energy": 195.61,
+        "payload_before": 1.1,
+        "battery_before": 571.0,
+        "battery_after": 375.4
+      },
+      {
+        "from": "t3",
+        "to": "home",
+        "geo": 3000.0,
+        "equiv": 3000.0,
+        "energy": 300.0,
+        "payload_before": -0.0,
+        "battery_before": 375.4,
+        "battery_after": 75.4
+      }
+    ]
+  },
+  "geo_opt_seq_rev": [
+    "t3",
+    "t2",
+    "t1",
+    "t10",
+    "t9",
+    "t8",
+    "t7",
+    "t6",
+    "t5",
+    "t4"
+  ],
+  "geo_opt_rev": {
+    "total_geo": 22687.2,
+    "total_equiv": 34950.2,
+    "total_energy_wh": 3495.02,
+    "remaining_wh": 4.98,
+    "budget_equiv": 35000.0,
+    "equiv_usage_pct": 99.9,
+    "feasible": true,
+    "warnings": [],
+    "segments": [
+      {
+        "from": "home",
+        "to": "t3",
+        "geo": 3000.0,
+        "equiv": 6150.1,
+        "energy": 615.01,
+        "payload_before": 21.0,
+        "battery_before": 3500.0,
+        "battery_after": 2885.0
+      },
+      {
+        "from": "t3",
+        "to": "t2",
+        "geo": 1854.1,
+        "equiv": 3698.9,
+        "energy": 369.89,
+        "payload_before": 19.9,
+        "battery_before": 2885.0,
+        "battery_after": 2515.1
+      },
+      {
+        "from": "t2",
+        "to": "t1",
+        "geo": 1854.1,
+        "equiv": 3559.9,
+        "energy": 355.99,
+        "payload_before": 18.4,
+        "battery_before": 2515.1,
+        "battery_after": 2159.1
+      },
+      {
+        "from": "t1",
+        "to": "t10",
+        "geo": 1854.1,
+        "equiv": 3346.7,
+        "energy": 334.67,
+        "payload_before": 16.1,
+        "battery_before": 2159.1,
+        "battery_after": 1824.4
+      },
+      {
+        "from": "t10",
+        "to": "t9",
+        "geo": 1854.1,
+        "equiv": 3077.8,
+        "energy": 307.78,
+        "payload_before": 13.2,
+        "battery_before": 1824.4,
+        "battery_after": 1516.7
+      },
+      {
+        "from": "t9",
+        "to": "t8",
+        "geo": 1854.2,
+        "equiv": 2883.3,
+        "energy": 288.33,
+        "payload_before": 11.1,
+        "battery_before": 1516.7,
+        "battery_after": 1228.3
+      },
+      {
+        "from": "t8",
+        "to": "t7",
+        "geo": 1854.1,
+        "equiv": 2651.3,
+        "energy": 265.14,
+        "payload_before": 8.6,
+        "battery_before": 1228.3,
+        "battery_after": 963.2
+      },
+      {
+        "from": "t7",
+        "to": "t6",
+        "geo": 1854.1,
+        "equiv": 2447.4,
+        "energy": 244.75,
+        "payload_before": 6.4,
+        "battery_before": 963.2,
+        "battery_after": 718.5
+      },
+      {
+        "from": "t6",
+        "to": "t5",
+        "geo": 1854.1,
+        "equiv": 2187.9,
+        "energy": 218.79,
+        "payload_before": 3.6,
+        "battery_before": 718.5,
+        "battery_after": 499.7
+      },
+      {
+        "from": "t5",
+        "to": "t4",
+        "geo": 1854.1,
+        "equiv": 1946.8,
+        "energy": 194.68,
+        "payload_before": 1.0,
+        "battery_before": 499.7,
+        "battery_after": 305.0
+      },
+      {
+        "from": "t4",
+        "to": "home",
+        "geo": 3000.0,
+        "equiv": 3000.0,
+        "energy": 300.0,
+        "payload_before": -0.0,
+        "battery_before": 305.0,
+        "battery_after": 5.0
+      }
+    ]
+  },
+  "geo_opt_best_dir": "forward",
+  "geo_opt_best": {
+    "total_geo": 22687.2,
+    "total_equiv": 34245.7,
+    "total_energy_wh": 3424.57,
+    "remaining_wh": 75.43,
+    "budget_equiv": 35000.0,
+    "equiv_usage_pct": 97.8,
+    "feasible": true,
+    "warnings": [],
+    "segments": [
+      {
+        "from": "home",
+        "to": "t4",
+        "geo": 3000.0,
+        "equiv": 6150.1,
+        "energy": 615.01,
+        "payload_before": 21.0,
+        "battery_before": 3500.0,
+        "battery_after": 2885.0
+      },
+      {
+        "from": "t4",
+        "to": "t5",
+        "geo": 1854.1,
+        "equiv": 3708.2,
+        "energy": 370.82,
+        "payload_before": 20.0,
+        "battery_before": 2885.0,
+        "battery_after": 2514.2
+      },
+      {
+        "from": "t5",
+        "to": "t6",
+        "geo": 1854.1,
+        "equiv": 3467.2,
+        "energy": 346.72,
+        "payload_before": 17.4,
+        "battery_before": 2514.2,
+        "battery_after": 2167.4
+      },
+      {
+        "from": "t6",
+        "to": "t7",
+        "geo": 1854.1,
+        "equiv": 3207.6,
+        "energy": 320.76,
+        "payload_before": 14.6,
+        "battery_before": 2167.4,
+        "battery_after": 1846.7
+      },
+      {
+        "from": "t7",
+        "to": "t8",
+        "geo": 1854.1,
+        "equiv": 3003.6,
+        "energy": 300.36,
+        "payload_before": 12.4,
+        "battery_before": 1846.7,
+        "battery_after": 1546.3
+      },
+      {
+        "from": "t8",
+        "to": "t9",
+        "geo": 1854.2,
+        "equiv": 2772.0,
+        "energy": 277.2,
+        "payload_before": 9.9,
+        "battery_before": 1546.3,
+        "battery_after": 1269.1
+      },
+      {
+        "from": "t9",
+        "to": "t10",
+        "geo": 1854.1,
+        "equiv": 2577.2,
+        "energy": 257.72,
+        "payload_before": 7.8,
+        "battery_before": 1269.1,
+        "battery_after": 1011.4
+      },
+      {
+        "from": "t10",
+        "to": "t1",
+        "geo": 1854.1,
+        "equiv": 2308.4,
+        "energy": 230.84,
+        "payload_before": 4.9,
+        "battery_before": 1011.4,
+        "battery_after": 780.6
+      },
+      {
+        "from": "t1",
+        "to": "t2",
+        "geo": 1854.1,
+        "equiv": 2095.2,
+        "energy": 209.52,
+        "payload_before": 2.6,
+        "battery_before": 780.6,
+        "battery_after": 571.0
+      },
+      {
+        "from": "t2",
+        "to": "t3",
+        "geo": 1854.1,
+        "equiv": 1956.1,
+        "energy": 195.61,
+        "payload_before": 1.1,
+        "battery_before": 571.0,
+        "battery_after": 375.4
+      },
+      {
+        "from": "t3",
+        "to": "home",
+        "geo": 3000.0,
+        "equiv": 3000.0,
+        "energy": 300.0,
+        "payload_before": -0.0,
+        "battery_before": 375.4,
+        "battery_after": 75.4
+      }
+    ]
+  },
+  "geo_opt_feasible_under_battery": true,
+  "energy_opt_seq": [
+    "t5",
+    "t6",
+    "t7",
+    "t8",
+    "t9",
+    "t10",
+    "t1",
+    "t2",
+    "t3",
+    "t4"
+  ],
+  "energy_opt": {
+    "total_geo": 22687.3,
+    "total_equiv": 33226.1,
+    "total_energy_wh": 3322.61,
+    "remaining_wh": 177.39,
+    "budget_equiv": 35000.0,
+    "equiv_usage_pct": 94.9,
+    "feasible": true,
+    "warnings": [],
+    "segments": [
+      {
+        "from": "home",
+        "to": "t5",
+        "geo": 3000.1,
+        "equiv": 6150.1,
+        "energy": 615.01,
+        "payload_before": 21.0,
+        "battery_before": 3500.0,
+        "battery_after": 2885.0
+      },
+      {
+        "from": "t5",
+        "to": "t6",
+        "geo": 1854.1,
+        "equiv": 3559.9,
+        "energy": 355.99,
+        "payload_before": 18.4,
+        "battery_before": 2885.0,
+        "battery_after": 2529.0
+      },
+      {
+        "from": "t6",
+        "to": "t7",
+        "geo": 1854.1,
+        "equiv": 3300.3,
+        "energy": 330.03,
+        "payload_before": 15.6,
+        "battery_before": 2529.0,
+        "battery_after": 2199.0
+      },
+      {
+        "from": "t7",
+        "to": "t8",
+        "geo": 1854.1,
+        "equiv": 3096.3,
+        "energy": 309.63,
+        "payload_before": 13.4,
+        "battery_before": 2199.0,
+        "battery_after": 1889.3
+      },
+      {
+        "from": "t8",
+        "to": "t9",
+        "geo": 1854.2,
+        "equiv": 2864.7,
+        "energy": 286.47,
+        "payload_before": 10.9,
+        "battery_before": 1889.3,
+        "battery_after": 1602.8
+      },
+      {
+        "from": "t9",
+        "to": "t10",
+        "geo": 1854.1,
+        "equiv": 2669.9,
+        "energy": 266.99,
+        "payload_before": 8.8,
+        "battery_before": 1602.8,
+        "battery_after": 1335.9
+      },
+      {
+        "from": "t10",
+        "to": "t1",
+        "geo": 1854.1,
+        "equiv": 2401.1,
+        "energy": 240.11,
+        "payload_before": 5.9,
+        "battery_before": 1335.9,
+        "battery_after": 1095.8
+      },
+      {
+        "from": "t1",
+        "to": "t2",
+        "geo": 1854.1,
+        "equiv": 2187.9,
+        "energy": 218.79,
+        "payload_before": 3.6,
+        "battery_before": 1095.8,
+        "battery_after": 877.0
+      },
+      {
+        "from": "t2",
+        "to": "t3",
+        "geo": 1854.1,
+        "equiv": 2048.8,
+        "energy": 204.88,
+        "payload_before": 2.1,
+        "battery_before": 877.0,
+        "battery_after": 672.1
+      },
+      {
+        "from": "t3",
+        "to": "t4",
+        "geo": 1854.2,
+        "equiv": 1946.9,
+        "energy": 194.69,
+        "payload_before": 1.0,
+        "battery_before": 672.1,
+        "battery_after": 477.4
+      },
+      {
+        "from": "t4",
+        "to": "home",
+        "geo": 3000.0,
+        "equiv": 3000.0,
+        "energy": 300.0,
+        "payload_before": -0.0,
+        "battery_before": 477.4,
+        "battery_after": 177.4
+      }
+    ]
+  }
+}

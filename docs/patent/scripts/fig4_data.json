@@ -1,0 +1,282 @@
+{
+  "n": 8,
+  "distribution": "random",
+  "seed": 2,
+  "scale": 800.0,
+  "home": {
+    "x": 0.0,
+    "y": 0.0
+  },
+  "drone": {
+    "alpha": 0.1,
+    "beta": 0.005,
+    "payload_capacity": 50.0,
+    "battery_capacity": 5000.0
+  },
+  "total_demand": 45.8,
+  "targets": [
+    {
+      "id": "t1",
+      "x": -381.4,
+      "y": -322.4,
+      "demand": 8.3
+    },
+    {
+      "id": "t2",
+      "x": -652.9,
+      "y": 160.2,
+      "demand": 7.6
+    },
+    {
+      "id": "t3",
+      "x": -499.4,
+      "y": -711.8,
+      "demand": 3.5
+    },
+    {
+      "id": "t4",
+      "x": 251.9,
+      "y": 99.6,
+      "demand": 2.4
+    },
+    {
+      "id": "t5",
+      "x": -107.8,
+      "y": 270.9,
+      "demand": 4.8
+    },
+    {
+      "id": "t6",
+      "x": 213.1,
+      "y": 747.9,
+      "demand": 7.1
+    },
+    {
+      "id": "t7",
+      "x": -173.4,
+      "y": -500.4,
+      "demand": 4.1
+    },
+    {
+      "id": "t8",
+      "x": 17.7,
+      "y": 625.9,
+      "demand": 8.0
+    }
+  ],
+  "geo_opt_seq": [
+    "t7",
+    "t3",
+    "t1",
+    "t2",
+    "t5",
+    "t8",
+    "t6",
+    "t4"
+  ],
+  "geo_opt": {
+    "total_equiv": 8727.1,
+    "total_energy_wh": 872.71,
+    "feasible": true,
+    "warnings": [],
+    "segments": [
+      {
+        "from": "home",
+        "to": "t7",
+        "geo": 529.6,
+        "equiv": 1742.4,
+        "energy": 174.24,
+        "payload_before": 45.8,
+        "payload_after": 41.7
+      },
+      {
+        "from": "t7",
+        "to": "t3",
+        "geo": 388.5,
+        "equiv": 1198.7,
+        "energy": 119.87,
+        "payload_before": 41.7,
+        "payload_after": 38.2
+      },
+      {
+        "from": "t3",
+        "to": "t1",
+        "geo": 406.9,
+        "equiv": 1184.0,
+        "energy": 118.4,
+        "payload_before": 38.2,
+        "payload_after": 29.9
+      },
+      {
+        "from": "t1",
+        "to": "t2",
+        "geo": 553.7,
+        "equiv": 1381.5,
+        "energy": 138.16,
+        "payload_before": 29.9,
+        "payload_after": 22.3
+      },
+      {
+        "from": "t2",
+        "to": "t5",
+        "geo": 556.2,
+        "equiv": 1176.4,
+        "energy": 117.64,
+        "payload_before": 22.3,
+        "payload_after": 17.5
+      },
+      {
+        "from": "t5",
+        "to": "t8",
+        "geo": 376.5,
+        "equiv": 706.0,
+        "energy": 70.6,
+        "payload_before": 17.5,
+        "payload_after": 9.5
+      },
+      {
+        "from": "t8",
+        "to": "t6",
+        "geo": 230.4,
+        "equiv": 339.8,
+        "energy": 33.98,
+        "payload_before": 9.5,
+        "payload_after": 2.4
+      },
+      {
+        "from": "t6",
+        "to": "t4",
+        "geo": 649.5,
+        "equiv": 727.4,
+        "energy": 72.74,
+        "payload_before": 2.4,
+        "payload_after": -0.0
+      },
+      {
+        "from": "t4",
+        "to": "home",
+        "geo": 270.9,
+        "equiv": 270.9,
+        "energy": 27.09,
+        "payload_before": -0.0,
+        "payload_after": -0.0
+      }
+    ]
+  },
+  "geo_geo_dist": 3962.2,
+  "our_seq": [
+    "t4",
+    "t6",
+    "t8",
+    "t5",
+    "t2",
+    "t1",
+    "t3",
+    "t7"
+  ],
+  "our": {
+    "total_equiv": 8270.8,
+    "total_energy_wh": 827.08,
+    "feasible": true,
+    "warnings": [],
+    "segments": [
+      {
+        "from": "home",
+        "to": "t4",
+        "geo": 270.9,
+        "equiv": 891.2,
+        "energy": 89.12,
+        "payload_before": 45.8,
+        "payload_after": 43.4
+      },
+      {
+        "from": "t4",
+        "to": "t6",
+        "geo": 649.5,
+        "equiv": 2058.8,
+        "energy": 205.88,
+        "payload_before": 43.4,
+        "payload_after": 36.3
+      },
+      {
+        "from": "t6",
+        "to": "t8",
+        "geo": 230.4,
+        "equiv": 648.5,
+        "energy": 64.85,
+        "payload_before": 36.3,
+        "payload_after": 28.3
+      },
+      {
+        "from": "t8",
+        "to": "t5",
+        "geo": 376.5,
+        "equiv": 909.3,
+        "energy": 90.93,
+        "payload_before": 28.3,
+        "payload_after": 23.5
+      },
+      {
+        "from": "t5",
+        "to": "t2",
+        "geo": 556.2,
+        "equiv": 1209.8,
+        "energy": 120.98,
+        "payload_before": 23.5,
+        "payload_after": 15.9
+      },
+      {
+        "from": "t2",
+        "to": "t1",
+        "geo": 553.7,
+        "equiv": 993.9,
+        "energy": 99.39,
+        "payload_before": 15.9,
+        "payload_after": 7.6
+      },
+      {
+        "from": "t1",
+        "to": "t3",
+        "geo": 406.9,
+        "equiv": 561.5,
+        "energy": 56.15,
+        "payload_before": 7.6,
+        "payload_after": 4.1
+      },
+      {
+        "from": "t3",
+        "to": "t7",
+        "geo": 388.5,
+        "equiv": 468.2,
+        "energy": 46.82,
+        "payload_before": 4.1,
+        "payload_after": -0.0
+      },
+      {
+        "from": "t7",
+        "to": "home",
+        "geo": 529.6,
+        "equiv": 529.6,
+        "energy": 52.96,
+        "payload_before": -0.0,
+        "payload_after": -0.0
+      }
+    ]
+  },
+  "our_geo_dist": 3962.2,
+  "energy_dp_seq": [
+    "t4",
+    "t6",
+    "t8",
+    "t5",
+    "t2",
+    "t1",
+    "t3",
+    "t7"
+  ],
+  "energy_dp": {
+    "total_equiv": 8270.8,
+    "feasible": true
+  },
+  "saved_pct": 5.2
+}

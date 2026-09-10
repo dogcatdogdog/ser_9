@@ -1,0 +1,64 @@
+% fig4_order_effect — 访问顺序影响能耗（同一几何环、方向相反）
+% 用途: 交底书 图4, §四/§六: 两方向几何总距相同 3962.2 m, 能耗 872.7 -> 827.1 Wh
+%       节省 5.2% (口径 = 主表 Gap_eng%: 以基线为分母; 与 §6.2 一致)
+% 实例: random n=8 scale=800 seed=2, 标准机型, 总需求 45.8 kg
+% 数据: docs/patent/scripts/fig4_data.json (gen_fig4.py 复现); 坐标 /120 归一
+% 规范: 全中文/与正文一致的符号标记($t_1\ldots t_8$); 黑白(灰度线型区分); 面板含义与结论见 FIGURES.md 图注
+% 编译: bash docs/patent/build.sh
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[fontset=windows]{ctex}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,decorations.markings}
+\begin{document}
+\begin{tikzpicture}[
+  font=\small,
+  midarrow/.style={
+    postaction={decorate},
+    decoration={markings, mark=at position 0.5 with {\arrow{Stealth[length=2.1mm,width=2.1mm]}}}
+  },
+  dep/.style={circle,draw,fill=white,inner sep=0pt,minimum size=0.62cm,font=\scriptsize},
+  wh/.style={rectangle,draw,fill=white,inner sep=1pt,minimum width=1.0cm,minimum height=0.52cm,font=\scriptsize},
+]
+% --- 投递点坐标（面板 A；面板 B = x 方向平移 +17）---
+\coordinate (h)  at ( 0.00, 0.00);
+\coordinate (p1) at (-3.18,-2.69);
+\coordinate (p2) at (-5.44, 1.34);
+\coordinate (p3) at (-4.16,-5.93);
+\coordinate (p4) at ( 2.10, 0.83);
+\coordinate (p5) at (-0.90, 2.26);
+\coordinate (p6) at ( 1.78, 6.23);
+\coordinate (p7) at (-1.45,-4.17);
+\coordinate (p8) at ( 0.15, 5.22);
+\coordinate (qh) at (17.00, 0.00);
+\coordinate (q1) at (13.82,-2.69);
+\coordinate (q2) at (11.56, 1.34);
+\coordinate (q3) at (12.84,-5.93);
+\coordinate (q4) at (19.10, 0.83);
+\coordinate (q5) at (16.10, 2.26);
+\coordinate (q6) at (18.78, 6.23);
+\coordinate (q7) at (15.55,-4.17);
+\coordinate (q8) at (17.15, 5.22);
+
+% --- 面板标号 ---
+\node[anchor=south,font=\small] at (-1.6,7.3) {（a）};
+\node[anchor=south,font=\small] at (16.4,7.3) {（b）};
+
+% --- 面板 A：几何最优方向（实线）---
+\draw[black,midarrow,line width=1.0pt]
+  (h)--(p7)--(p3)--(p1)--(p2)--(p5)--(p8)--(p6)--(p4)--cycle;
+% --- 面板 B：能量感知方向（虚线）---
+\draw[black!70,dashed,midarrow,line width=1.0pt]
+  (qh)--(q4)--(q6)--(q8)--(q5)--(q2)--(q1)--(q3)--(q7)--cycle;
+
+% --- 节点标记：仓库 + 投递点（与正文一致的符号 t_1..t_8）---
+\foreach \pt in {h,qh}{\node[wh] at (\pt) {仓库};}
+\foreach \pt/\n in {p1/1,p2/2,p3/3,p4/4,p5/5,p6/6,p7/7,p8/8,
+                    q1/1,q2/2,q3/3,q4/4,q5/5,q6/6,q7/7,q8/8}{
+  \node[dep] at (\pt) {$t_{\n}$};
+}
+
+% --- 总能耗（技术数据）---
+\node[anchor=north,font=\small] at (-1.6,-6.6) {总能耗 872.7 Wh};
+\node[anchor=north,font=\small] at (16.4,-6.6) {总能耗 827.1 Wh};
+\end{tikzpicture}
+\end{document}

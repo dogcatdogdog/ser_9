@@ -4,10 +4,14 @@
 
 当前聚焦 **A3 · 多目标访问路线规划 (TSP/VRP)**：无人机从仓库出发，访问 N 个投递点/巡检点，在载重上限和电量续航的联合约束下，找到总等效能耗最小的访问顺序。
 
-**核心创新（专利方向）**：「一种基于载重-能耗耦合等效距离变换的无人机多目标路径规划方法」
-- 创新点 1: 等效电量距离变换 — 将几何距离矩阵改造为载重感知的等效距离矩阵
-- 创新点 2: 载重-能耗耦合模型 — 能耗率 = α + β × 当前载重
-- 创新点 3: 增量电量校验 — 局部搜索中仅重算受影响段，O(k) 而非 O(n)
+**专利主张（W9 定稿口径）**：「一种基于自适应分级求解的无人机多目标路径规划方法」
+- 主张：**两模式互为支撑** — 启发式给可行解兼作精确搜索的剪枝上界；上界使状态空间削减
+  41.6%~94.2%，把"在线精确最优"从 n≤15 推到 **n≤20**（1.96 s，原实现 96.5 s）；精确模式反供
+  确切最优值与可行性判定（两模式齐跑时可确切得出降级解差距：实测均值 0.43%）
+- **已知技术（不主张，交底书已主动承认）**：载重-能耗线性模型（Dorling 2017）、
+  等效电量距离变换（等价改写，E=α·EED）、增量电量校验（Ngueveu 2010 已有 O(1)）、
+  Held-Karp 式 DP 与标签支配（Christofides 1981）
+- 详见 `docs/patent_disclosure.md` 与 `docs/patent/NOVELTY_VERDICT.md`（含文献核查结论）
 
 ## 技术栈
 
@@ -53,12 +57,16 @@ D:\ser_9\
 │   ├── heuristic.py             # NN 构造 + C-W Savings + 2-opt/Or-opt/VND 搜索
 │   ├── route.py                 # RoutePlan/Segment 数据结构
 │   ├── exact.py                 # 精确解基线 (W5): CP-SAT + Held-Karp + 能量感知 DP
+│   ├── exact_battery.py         # 带电量约束精确解 (W9): 分层向量化 + 可采纳下界剪枝,
+│   │                            #   n<=20 (MVP 上限) 1.8s/156MB; 电量约束只是可行性闸门
+│   ├── adaptive.py              # 自适应入口 (W9): plan_multistop_adaptive() 按预算选
+│   │                            #   精确/降级; 精确模式以降级解的精确能耗作剪枝上界
 │   ├── ablation.py              # 消融实验 (W5): 6 变体组合现有纯函数
 │   ├── benchmark.py             # 评测: vs OR-Tools / PyVRP / 消融 → 论文指标表
 │   ├── baseline.py              # PyVRP 基线求解 (W2, W5 加 gap_vs_best)
 │   ├── data_generator.py        # 测试数据生成器 (W2)
 │   ├── fixture_loader.py        # 共享 fixture 加载 (W2)
-│   └── tests/                   # 单测 (145 例, W5 完成)
+│   └── tests/                   # 单测 (267 例 = W5 145 + W9 122)
 │       ├── conftest.py           # 共享 fixtures
 │       ├── utils.py              # → 委托 fixture_loader.py (向后兼容)
 │       ├── test_energy_model.py  # 21 例
@@ -69,6 +77,9 @@ D:\ser_9\
 │       ├── test_data_generator.py # 19 例 (W2)
 │       ├── test_exact.py         # 15 例 (W5)
 │       ├── test_ablation.py      # 11 例 (W5)
+│       ├── test_exact_battery.py      # 21 例 (W9)
+│       ├── test_exact_battery_fast.py # 72 例 (W9): 向量化+剪枝 vs 参照/暴力枚举逐位一致
+│       ├── test_adaptive.py           # 29 例 (W9): 模式选择/预算估算/协同/边界
 │       └── fixtures/             # 标准测试数据集 (6 个)
 │           ├── solomon_r101_n20.json
 │           ├── solomon_c101_n20.json
@@ -118,6 +129,28 @@ def plan_multistop(
 求解流程: NN 构造 (W3) → VND 搜索 2-opt + Or-opt 交替改进 (W4)
 
 所有类型定义见 `A3_SCHEMA.md` §1。
+
+### Python 自适应入口 (W9, 新增)
+
+```python
+def plan_multistop_adaptive(
+    targets: list[Target],
+    home: GeoPoint,
+    drone: DroneSpec,
+    *,
+    time_limit_secs: float = 5.0,    # 本次求解时间预算 (对齐 http.rs ServiceConfig)
+    memory_limit_mb: float = 250.0,  # 本次求解峰值内存预算 (并发时应传 总量/并发数)
+    seed: int = 42
+) -> RoutePlan:
+```
+
+行为: 先跑一次 `plan_multistop` (既是降级解, 又是精确模式的剪枝上界);
+`adaptive.choose_mode()` 按预算估算选模式 —— 预算够走 `exact_battery` 精确模式,
+不够则直接返回降级解。返回的 `RoutePlan` **结构不变**, 实际模式以
+`"[adaptive] mode=..."` 追加在 `warnings` 末尾, 用 `adaptive.solve_mode_of(plan)` 读回。
+
+约束: `plan_multistop` 与 `plan_multistop_adaptive` **均只支持 1 ≤ n ≤ 20**
+(`solver.MAX_TARGETS`); n > 20 抛 `ValueError` (无降级路径 —— 启发式同样受 MVP 上限约束)。
 
 ### Rust (W6 启动，预定义)
 
