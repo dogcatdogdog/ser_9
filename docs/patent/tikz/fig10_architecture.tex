@@ -1,0 +1,71 @@
+% fig10_architecture — 自适应分级求解架构（模式选择与两模式协同）
+% 用途: 交底书 图10, §5.1 总体架构 / §5.6 模式选择与两模式协同（新增）
+% 要点: 按运行时资源预算选择求解模式; 预算内走精确模式保证最优, 超预算自动降级;
+%       启发式解既作降级输出, 又作精确模式的剪枝上界 UB (协同)
+% 规范: 全中文标注; 黑白线条; 图内只保留必需词语(说明见 FIGURES.md 图注)
+% 编译: bash docs/patent/build.sh   (xelatex + ctex)
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[fontset=windows]{ctex}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\begin{document}
+\begin{tikzpicture}[
+  font=\small,
+  io/.style={draw,rounded corners=2pt,align=center,text width=10.0cm,fill=gray!10,inner sep=4pt},
+  box/.style={draw,rounded corners=2pt,align=center,text width=10.0cm,fill=white,inner sep=4pt},
+  dec/.style={box,text width=7.4cm,fill=gray!5},
+  branch/.style={draw,rounded corners=2pt,align=center,text width=4.7cm,fill=white,inner sep=4pt},
+  hl/.style={branch,line width=1.1pt},
+  ar/.style={-{Stealth[length=2.8mm]},thick},
+  ub/.style={-{Stealth[length=2.8mm]},thick,dashed,black!70},
+]
+% 输入
+\node[io] (inp) {输入：目标点集合、仓库位置、无人机参数（$\alpha$、$\beta$、载重上限、电池容量）};
+
+% 启发式 / 降级模式求解（始终先跑，产出可行解）
+\node[dec,below=0.62cm of inp] (heur) {启发式求解（降级模式）\\[2pt]
+  电量感知最近邻构造 + 增量局部搜索（2-opt / Or-opt）\\[2pt]
+  \textbf{产出：一个可行解（候选降级解）}};
+
+% 资源预算评估
+\node[box,below=0.62cm of heur] (budget) {资源预算评估\\[2pt]
+  按目标点数 $n$ 估算精确模式的耗时与峰值内存，与时限 / 内存预算比较};
+
+% 决策
+\node[dec,below=0.62cm of budget,text width=6.2cm] (dec) {预算是否满足？\\（估算耗时 $\le$ 时限 且 估算内存 $\le$ 内存预算）};
+
+% 两分支（左右并列，居中于 dec 之下）
+\node[hl,below=1.05cm of dec,xshift=-3.30cm] (exact) {\textbf{精确模式}\\[2pt]
+  分层状态推进 + 批量转移\\ + 可采纳下界剪枝\\[2pt]
+  \textbf{产出：最优序列}};
+\node[hl,below=1.05cm of dec,xshift=3.30cm] (degr) {\textbf{降级模式}\\[2pt]
+  直接采用启发式解\\[2pt]
+  \textbf{产出：可行序列}};
+
+% 分支汇合点
+\coordinate (bmid) at ($(exact.south)!0.5!(degr.south)$);
+
+% 后验证与输出
+\node[dec,below=1.30cm of bmid,text width=10.0cm] (verify) {后验证：逐段模拟载重与能耗，校验可行性};
+
+\node[io,below=0.62cm of verify] (out) {输出：访问顺序、总等效电量距离、总能耗、可行性标记（含模式标注）};
+
+% 主流程连线
+\draw[ar] (inp)--(heur);
+\draw[ar] (heur)--(budget);
+\draw[ar] (budget)--(dec);
+\draw[ar] (dec.south) -- ++(0,-0.32) coordinate (fork);
+\draw[ar] (fork) -| node[left,font=\scriptsize,pos=0.80]{是} (exact.north);
+\draw[ar] (fork) -| node[right,font=\scriptsize,pos=0.80]{否} (degr.north);
+\draw[ar] (exact.south) |- (verify.west);
+\draw[ar] (degr.south) |- (verify.east);
+\draw[ar] (verify)--(out);
+
+% 协同: 启发式解 -> 精确模式 的剪枝上界 UB
+\draw[ub] (heur.west) -- ++(-1.55,0) coordinate (ubtop);
+\draw[ub] (ubtop) |- (exact.west);
+\node[font=\scriptsize,align=center,anchor=east]
+  at ($(ubtop)!0.55!(ubtop |- exact.west)$) {上界 UB\\（协同）};
+\end{tikzpicture}
+\end{document}

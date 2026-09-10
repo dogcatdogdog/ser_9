@@ -1,7 +1,9 @@
 # 交底书数据核对表（R3）
 
 > 机制：正文每出现一个数字即登记一行，标明出处；优先从脚本输出复制，不手抄。
-> 数据源：`results/table_20260819_105511.md`（93 实例）、`docs/patent/scripts/fig4_data.json`（fig4 实例）。
+> 数据源：`results/table_20260819_105511.md`（93 实例）、`docs/patent/scripts/fig4_data.json`（fig4 实例）、
+> W9 新增：`docs/exploration/STEP2_THRESHOLD.md`、`STEP1_PERF.md`、`results/gap_rebaseline.json`、
+> `docs/exploration/step1_perf_data.json`（另见 §F）。
 > 核对人：Claude（R3 子代理 + 主流程复核）　核对日期：2026-09-10
 >
 > **R3 复核结论（2026-09-10）**：24 项登记中 19 项一致、1 项数值不符（已修正）、4 项口径/出处存疑（已修正）。
@@ -68,6 +70,32 @@
 | 8.3 | 几何最优序 t7→t3→t1→t2→t5→t8→t6→t4，能耗 872.71 Wh | `fig4_data.json` → `geo_opt_seq`, `geo_opt.total_energy_wh` | ☐ |
 | 8.5 表 | 耗时同 6.4 | 主表 §3 | ☐ |
 | 8.7 | 矩阵交叉校验 < 10⁻⁶；结果容差 0.02 | `a3_rust/tests/cross_check.rs`；DEVPLAN W6 记录 | ☐ |
+
+## F. W9 重构新增数字（自适应分级求解）
+
+> 来源：`docs/exploration/STEP2_THRESHOLD.md`、`STEP1_PERF.md`、`results/gap_rebaseline.json`、
+> `docs/exploration/step1_perf_data.json`（均在 `tw-feasibility` 探索分支，已由 W9 移植回主干）。
+> 数字须与 `a3_python/exact_battery.py`、`a3_python/adaptive.py` 的实现口径一致。
+
+| 正文位置 | 数字 | 出处 | 核对 |
+|---|---|---|---|
+| 5.5 / 5.8 / 6.5 | 精确模式覆盖 **n ≤ 20**（原实现上限 n≤15） | `exact_battery.py::MAX_EXACT_BATTERY_POINTS=20`；`STEP2_THRESHOLD.md` §1 | ☐ |
+| 6.5 | n=20 耗时 **1.96 s**（另一轮）；中位 1.774 s / 最差 1.857 s | `STEP1_PERF.md` §4.1（seed0 剪枝开=1.962）；`STEP2_THRESHOLD.md` §1（中位 1.774） | ☐ |
+| 6.5 | 原纯 Python 三重循环 n=20 需 **96.5 s** | `STEP2_THRESHOLD.md` §2；`STEP1_PERF.md` §0 | ☐ |
+| 6.5 | 加速比 **24~50×** | `STEP2_THRESHOLD.md` §2（"加速比 24~50×"） | ☐ |
+| 6.5 / 8.5 | n=20 峰值内存 **155.8 MB** | `STEP2_THRESHOLD.md` §1；`STEP1_PERF.md` §4.2 | ☐ |
+| 6.5 / 8.5 | n=14–20 耗时 0.053/0.071/0.112/0.206/0.421/0.743/1.774 s；内存 2.5/5.2/9.5/19.1/36.7/75.4/155.8 MB | `STEP2_THRESHOLD.md` §1 | ☐ |
+| 6.5 | 分层+向量化贡献 24~26×；剪枝 n≥17 净收益、n=20 约 2.0× | `STEP1_PERF.md` §4.1 读法 1、2 | ☐ |
+| 5.5 | 与暴力枚举/参照实现**逐位一致**；下界可采纳性逐状态验证 | `STEP1_PERF.md` §3.1、§3.3；W9 单测 122 例 | ☐ |
+| 5.6 / 6.6 | 电量约束不改变最优序列，**18/18 组序列相同** | `STEP2_THRESHOLD.md` §3.2（6 实例 × 3 档容量） | ☐ |
+| 6.6 | 70 实例：**65.2%**（45/69）命中最优 | `gap_rebaseline.json` → `summary.sequence_identical`=45, `both_feasible`=69 | ☐ |
+| 6.6 | **97.1%**（67/69）距最优 ≤ 2% | 由 `gap_rebaseline.json` 各行 `gap_true_pct` 计算（67/69） | ☐ |
+| 6.6 | 均值 **0.429%**、最大 **8.643%** | `gap_rebaseline.json` → `summary.gap_true_pct_mean_max_min`=[0.429, 8.643, −0.001] | ☐ |
+| 6.6 / 8.2 | 70 实例中 1 个降级模式未构造出可行解（精确解可判定/求出） | `gap_rebaseline.json` → `our_infeasible`=1, `exact_infeasible`=0 | ☐ |
+| 6.7 / 8.9 | 预算 5 s → 精确模式能耗 **1420**；预算 0.5 s → 降级 **1489.75（表中 1490）**，**+4.9%** | `step1_perf_data.json`（n=20,seed0：`fast_objective`=1420.0027、`fast_ub`=1489.754）；+4.9%=(1489.754−1420.0027)/1420.0027 | ☐ |
+| 6.7 / 8.9 | 模式切换耗时：精确 **约 2.1 s** / 降级 **0.10 s** | 本机复现：`plan_multistop_adaptive`（time_limit 5.0→2.093 s；0.5→0.100 s）。**注**：任务给定为 2.13 s，本机复现为 2.09 s，同为单次测量、已取"约 2.1 s" | ☐ |
+| 5.6 / 8.9 | n=20 保守估算 3.07 s / 234 MB（安全系数 1.5） | `adaptive.py::estimate_exact_resources` / `choose_mode(20,5.0,250.0)` 实测输出 | ☐ |
+| 5.6 | 估算对 n=14–20 全部实测点满足"估算 ≥ 实测" | `adaptive.py` docstring 校验表（注释） | ☐ |
 
 ## D. 口径提醒（写作时易错点）
 

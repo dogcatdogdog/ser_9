@@ -1,9 +1,12 @@
 % fig7_scaling — 求解耗时随规模变化（实施例性能）
 % 用途: 交底书 图7, §八 性能: 5/10/15/20 点平均求解耗时（对数纵轴）
 % 数据: results/table_20260819_105511.md「3. 规模扩展时间曲线」:
-%   本方法 1.04 / 8.19 / 26.96 / 92.05 ms
+%   本方法（降级模式/启发式） 1.04 / 8.19 / 26.96 / 92.05 ms
 %   CP-SAT 几何精确解 4.49 / 10.71 / 43.29 / 715.84 ms
 %   PyVRP 约 2000 ms（固定 2 s 时限截断，非收敛时间）
+%   W9 精确模式（分层向量化+上界剪枝） n=14..20: 53/71/112/206/421/743/1774 ms
+%     （docs/exploration/STEP2_THRESHOLD.md §1 耗时中位；原纯 Python 实现 n=20 需 96520 ms）
+% 变更 (W9 重构): 加入精确模式耗时曲线与"精确/降级"阈值分界线 (N=20)
 % 规范: 全中文; 黑白; 去标题(见 FIGURES.md 图注)
 % 编译: bash docs/patent/build.sh
 \documentclass[tikz,border=8pt]{standalone}
@@ -17,20 +20,29 @@
   width=13.5cm, height=8cm,
   xlabel={目标点数 $N$},
   ylabel={单实例平均求解时间（ms）},
-  xmin=3, xmax=22, ymin=0.8, ymax=5000,
-  xtick={5,10,15,20},
+  xmin=3, xmax=23, ymin=0.8, ymax=5000,
+  xtick={5,10,14,15,16,17,18,19,20},
   grid=both, grid style={gray!22},
-  legend style={at={(0.02,0.98)},anchor=north west,font=\small,draw=none,fill=none},
+  legend style={at={(0.02,0.98)},anchor=north west,font=\scriptsize,draw=none,fill=none},
   label style={font=\small}, tick label style={font=\small},
 ]
 \addplot[thick, mark=*, mark size=2.6pt, black] coordinates {
   (5,1.04) (10,8.19) (15,26.96) (20,92.05)};
-\addlegendentry{本方法}
+\addlegendentry{本方法（降级模式）}
+\addplot[thick, mark=triangle*, mark size=2.8pt, black, dash pattern=on 4pt off 2pt] coordinates {
+  (14,53) (15,71) (16,112) (17,206) (18,421) (19,743) (20,1774)};
+\addlegendentry{精确模式}
 \addplot[thick, mark=square*, mark size=2.4pt, black!60, dashed] coordinates {
   (5,4.49) (10,10.71) (15,43.29) (20,715.84)};
 \addlegendentry{CP-SAT 几何精确解}
-\addplot[gray, densely dotted, mark=none] coordinates {(3,2000) (22,2000)};
+\addplot[gray, densely dotted, mark=none] coordinates {(3,2000) (23,2000)};
 \addlegendentry{PyVRP 基线（2 s 时限截断）}
+% 精确/降级阈值分界线（N=20，MVP 上限内精确；超出走降级）
+\draw[dashed, thick, black!55] (axis cs:20.5,0.8) -- (axis cs:20.5,5000);
+\addlegendimage{line legend, dashed, thick, black!55}
+\addlegendentry{精确/降级分界（$N{=}20$）}
+\node[font=\scriptsize,anchor=north] at (axis cs:19.6,0.90) {精确};
+\node[font=\scriptsize,anchor=north] at (axis cs:21.4,0.90) {降级};
 \end{semilogyaxis}
 \end{tikzpicture}
 \end{document}

@@ -1,5 +1,6 @@
-% fig1_overview — 方法总体流程（S1–S4）
+% fig1_overview — 方法总体流程（S1–S6，含模式选择）
 % 用途: 交底书 图1, §五 技术方案总体流程 (对应权利要求方法步骤顺序)
+% 变更 (W9 重构): 原 S1→S4 线性流程，加入 S5 模式选择环节与 S4 精确模式分支
 % 规范: 全中文标注; 黑白线条; 图内只保留必需词语(标题/说明见 FIGURES.md 图注)
 % 编译: bash docs/patent/build.sh   (xelatex + ctex)
 \documentclass[tikz,border=8pt]{standalone}
@@ -10,26 +11,40 @@
 \begin{document}
 \begin{tikzpicture}[
   font=\small,
-  io/.style={draw,rounded corners=2pt,align=center,text width=11.2cm,fill=gray!10},
-  box/.style={draw,rounded corners=2pt,align=center,text width=11.2cm,fill=white},
+  io/.style={draw,rounded corners=2pt,align=center,text width=11.6cm,fill=gray!10},
+  box/.style={draw,rounded corners=2pt,align=center,text width=11.6cm,fill=white},
+  dec/.style={box,text width=8.4cm,fill=gray!5},
+  branch/.style={box,text width=5.3cm},
   result/.style={box,draw=black!75,line width=1.1pt},
   ar/.style={-{Stealth[length=3mm]},thick},
 ]
 \node[io] (inp) {输入：目标点集合（坐标、需求量）、仓库位置、无人机参数（$\alpha$、$\beta$、载重上限、电池容量）};
 
-\node[box,below=0.72cm of inp] (s1) {S1\quad 载重感知等效电量距离（逐段按出发载重求值）\\[2pt]
+\node[box,below=0.62cm of inp] (s1) {S1\quad 载重感知等效电量距离（逐段按出发载重求值）\\[2pt]
   $\mathrm{EED}(i,j,L)=d_{ij}\cdot\dfrac{\alpha+\beta L}{\alpha}$\quad（$L$ 为出发时载重）};
 
-\node[box,below=0.72cm of s1] (s2) {S2\quad 电量感知最近邻构造（N 起点）\\[2pt]
+\node[box,below=0.62cm of s1] (s2) {S2\quad 电量感知最近邻构造（N 起点）\\[2pt]
   载重预检：总需求 $>$ 载重上限则判定不可行；每步要求往返电量可行};
 
-\node[box,below=0.72cm of s2] (s3) {S3\quad 增量局部搜索：2-opt 与 Or-opt 交替\\[2pt]
+\node[box,below=0.62cm of s2] (s3) {S3\quad 增量局部搜索：2-opt 与 Or-opt 交替\\
   首次改进接受；每次候选移动仅按受影响段做增量电量校验（载重由预检保证）};
 
-\node[box,below=0.72cm of s3] (s4) {S4\quad 逐段全量后验证（载重与能耗）};
+\node[dec,below=0.62cm of s3] (s5) {S5\quad 模式选择：按目标点数估算精确模式的耗时与峰值内存，与时限/内存预算比较};
 
-\node[result,below=0.72cm of s4] (res) {输出：访问顺序、总等效电量距离、可行性};
+\node[branch,below left=0.72cm and 0.30cm of s5] (s4) {\textbf{S4 精确求解模式}\\
+  分层状态推进 + 批量转移\\ + 可采纳下界剪枝};
+\node[branch,below right=0.72cm and 0.30cm of s5] (deg) {\textbf{降级模式}\\ 直接采用 S3 的启发式解};
 
-\draw[ar] (inp)--(s1); \draw[ar] (s1)--(s2); \draw[ar] (s2)--(s3); \draw[ar] (s3)--(s4); \draw[ar] (s4)--(res);
+\node[box,below=2.35cm of s5] (s6) {S6\quad 逐段全量后验证（载重与能耗）};
+
+\node[result,below=0.62cm of s6] (res) {输出：访问顺序、总等效电量距离、可行性};
+
+\draw[ar] (inp)--(s1); \draw[ar] (s1)--(s2); \draw[ar] (s2)--(s3); \draw[ar] (s3)--(s5);
+\draw[ar] (s5.south) -- ++(0,-0.30) coordinate (fork);
+\draw[ar] (fork) -| node[left,font=\scriptsize,pos=0.80]{预算足} (s4.north);
+\draw[ar] (fork) -| node[right,font=\scriptsize,pos=0.80]{预算不足} (deg.north);
+\draw[ar] (s4.south) |- (s6.east);
+\draw[ar] (deg.south) |- (s6.east);
+\draw[ar] (s6)--(res);
 \end{tikzpicture}
 \end{document}
