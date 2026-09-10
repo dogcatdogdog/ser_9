@@ -58,14 +58,16 @@
 \draw[ar] (dec.south) -- ++(0,-0.32) coordinate (fork);
 \draw[ar] (fork) -| node[left,font=\scriptsize,pos=0.80]{是} (exact.north);
 \draw[ar] (fork) -| node[right,font=\scriptsize,pos=0.80]{否} (degr.north);
-\draw[ar] (exact.south) |- (verify.west);
-\draw[ar] (degr.south) |- (verify.east);
+% 两分支分别从后验证顶边进入（落点错开；竖直段落在节点外侧，不穿边框）
+\draw[ar] (exact.south) -- ++(0,-0.55) -| ([xshift=-2.6cm]verify.north);
+\draw[ar] (degr.south) -- ++(0,-0.55) -| ([xshift=2.6cm]verify.north);
 \draw[ar] (verify)--(out);
 
 % 协同: 启发式解 -> 精确模式 的剪枝上界 UB
-\draw[ub] (heur.west) -- ++(-1.55,0) coordinate (ubtop);
-\draw[ub] (ubtop) |- (exact.west);
-\node[font=\scriptsize,align=center,anchor=east]
-  at ($(ubtop)!0.55!(ubtop |- exact.west)$) {上界 UB\\（协同）};
+% 竖直下降段置于精确模式节点左侧之外(ubx), 再水平进入其西边框, 避免穿入节点内部
+\coordinate (ubx) at ([xshift=-0.9cm]exact.west);
+\draw[ub] (heur.west) -| (ubx);
+\draw[ub] (ubx) -- (exact.west);
+\node[font=\scriptsize,align=center,anchor=east] at ([xshift=-0.12cm]ubx) {上界 UB\\（协同）};
 \end{tikzpicture}
 \end{document}

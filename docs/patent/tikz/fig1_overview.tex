@@ -35,7 +35,7 @@
   分层状态推进 + 批量转移\\ + 可采纳下界剪枝};
 \node[branch,below right=0.72cm and 0.30cm of s5] (deg) {\textbf{降级模式}\\ 直接采用 S3 的启发式解};
 
-\node[box,below=2.35cm of s5] (s6) {S6\quad 逐段全量后验证（载重与能耗）};
+\node[box,below=2.90cm of s5] (s6) {S6\quad 逐段全量后验证（载重与能耗）};
 
 \node[result,below=0.62cm of s6] (res) {输出：访问顺序、总等效电量距离、可行性};
 
@@ -43,8 +43,9 @@
 \draw[ar] (s5.south) -- ++(0,-0.30) coordinate (fork);
 \draw[ar] (fork) -| node[left,font=\scriptsize,pos=0.80]{预算足} (s4.north);
 \draw[ar] (fork) -| node[right,font=\scriptsize,pos=0.80]{预算不足} (deg.north);
-\draw[ar] (s4.south) |- (s6.east);
-\draw[ar] (deg.south) |- (s6.east);
+% 两分支分别从 S6 顶边进入（落点错开，且竖直段落在节点外侧，不穿边框）
+\draw[ar] (s4.south) -- ++(0,-0.45) -| ([xshift=-2.6cm]s6.north);
+\draw[ar] (deg.south) -- ++(0,-0.45) -| ([xshift=2.6cm]s6.north);
 \draw[ar] (s6)--(res);
 \end{tikzpicture}
 \end{document}
