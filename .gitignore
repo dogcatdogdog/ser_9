@@ -41,3 +41,6 @@ pyvrp-page-*
 
 # Claude Code worktrees (本地产物, 不入库)
 .claude/worktrees/
+
+# Word/Office 打开文档时的锁文件
+~$*
