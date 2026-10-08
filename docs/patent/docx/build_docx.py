@@ -24,7 +24,7 @@ import sys
 import pypandoc
 from docx import Document
 from docx.enum.text import WD_BREAK
-from docx.shared import Pt, Cm, RGBColor
+from docx.shared import Pt, Cm, Emu, RGBColor
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
@@ -123,23 +123,134 @@ def append_figures(doc: Document, captions: dict[int, str]) -> int:
     return added
 
 
-def shrink_wide_tables(doc: Document) -> int:
-    """宽表降字号到小五 + 允许跨页断行"""
-    n = 0
+def est_text_width_pt(text: str, font_pt: float) -> float:
+    """估算一段文字渲染所需宽度(pt): 汉字/全角按 1 字宽, 西文数字按半字宽"""
+    w = 0.0
+    for ch in text:
+        w += font_pt if ord(ch) > 0x2E80 else font_pt * 0.5
+    return w
+
+
+def cell_text(cell) -> str:
+    return "".join(p.text for p in cell.paragraphs).strip()
+
+
+def fit_table_columns(doc: Document, base_pt: float = 10.5) -> tuple[int, int]:
+    """按内容实测宽度重算每张表的列宽, 消除"数字/单字被挤断"的换行
+
+    做法:
+      1. 逐列估算所需宽度 = max(各单元格文字宽) + 单元格左右边距
+      2. 若总宽 <= 版心宽 → 按比例分配余量; 否则等比压缩
+      3. 压缩过狠(某列 < 26pt)时, 该表整体降字号到小五并重算
+      4. 关闭自动调整, 写入固定列宽(tblLayout=fixed), 并禁止行内跨页断行
+
+    返回 (处理的表数, 降字号的表数)
+    """
+    sec = doc.sections[0]
+    # pandoc 的 reference.docx 未定义页面尺寸 -> 显式设为 A4 + 标准页边距
+    if sec.page_width is None:
+        sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
+    if sec.left_margin is None:
+        sec.left_margin = sec.right_margin = Cm(2.54)
+    if sec.top_margin is None:
+        sec.top_margin = sec.bottom_margin = Cm(2.54)
+    usable_pt = Emu(sec.page_width - sec.left_margin - sec.right_margin).pt
+    margin_pt = 4.5   # 单元格左右边距合计(下方设为每侧 0.08cm)
+    done = shrunk = 0
+
     for tbl in doc.tables:
         cols = len(tbl.columns)
-        if cols < WIDE_TABLE_COLS:
+        rows = tbl.rows
+        if cols == 0 or len(rows) == 0:
             continue
-        n += 1
-        for row in tbl.rows:
-            trPr = row._tr.get_or_add_trPr()
+        # 1) 逐列收集"最长行"所需宽度(随字号缩放, 故按字号重算)
+        def compute_need(font_pt: float) -> list[float]:
+            nd = [0.0] * cols
+            for r in rows:
+                for c in range(min(cols, len(r.cells))):
+                    txt = cell_text(r.cells[c])
+                    if not txt:
+                        continue
+                    longest = max((est_text_width_pt(seg, font_pt)
+                                   for seg in txt.replace("\n", " ").split("  ")),
+                                  default=0.0)
+                    nd[c] = max(nd[c], longest + margin_pt)
+            return nd
+
+        # 2) 迭代选字号: 在能"放得下各列最长行"的前提下取最大字号
+        font_pt = base_pt
+        need = compute_need(base_pt)
+        if sum(need) > usable_pt:
+            for cand in (10.0, 9.5, WIDE_TABLE_FONT_PT, 8.5):
+                nd = compute_need(cand)
+                if sum(nd) <= usable_pt:
+                    font_pt, need = cand, nd
+                    break
+            else:
+                font_pt = 8.5
+                need = compute_need(8.5)
+            shrunk += 1
+
+        # 2b) 水填充式分配: 需求小于均分的列只拿所需, 余量给紧缺的列
+        fair = usable_pt / cols
+        widths = [0.0] * cols
+        slack_idx = [i for i in range(cols) if need[i] <= fair]
+        tight_idx = [i for i in range(cols) if need[i] > fair]
+        for i in slack_idx:
+            widths[i] = need[i]
+        rest = usable_pt - sum(widths[i] for i in slack_idx)
+        if tight_idx:
+            tot_need = sum(need[i] for i in tight_idx)
+            if tot_need <= rest:                     # 余量足够, 按需分配再摊余
+                for i in tight_idx:
+                    widths[i] = need[i]
+                extra = (rest - tot_need) / len(tight_idx)
+                for i in tight_idx:
+                    widths[i] += extra
+            else:                                    # 仍不够 -> 按需等比压缩
+                k = rest / tot_need
+                floor = margin_pt + font_pt * 2      # 至少放得下 2 个汉字
+                for i in tight_idx:
+                    widths[i] = max(floor, need[i] * k)
+
+        # 3) 写入固定列宽
+        tbl.autofit = False
+        tblPr = tbl._tbl.tblPr
+        for tag in ("w:tblLayout", "w:tblW"):
+            old = tblPr.find(qn(tag))
+            if old is not None:
+                tblPr.remove(old)
+        old = tblPr.find(qn("w:tblCellMar"))
+        if old is not None:
+            tblPr.remove(old)
+        cellmar = OxmlElement("w:tblCellMar")
+        for side, twips in (("top", "0"), ("left", "45"),
+                            ("bottom", "0"), ("right", "45")):
+            e = OxmlElement(f"w:{side}")
+            e.set(qn("w:w"), twips)
+            e.set(qn("w:type"), "dxa")
+            cellmar.append(e)
+        tblPr.append(cellmar)
+        layout = OxmlElement("w:tblLayout")
+        layout.set(qn("w:type"), "fixed")
+        tblPr.append(layout)
+        tblW = OxmlElement("w:tblW")
+        tblW.set(qn("w:w"), str(int(sum(widths) * 20)))
+        tblW.set(qn("w:type"), "dxa")
+        tblPr.append(tblW)
+
+        for r in rows:
+            trPr = r._tr.get_or_add_trPr()
             if trPr.find(qn("w:cantSplit")) is None:
                 trPr.append(OxmlElement("w:cantSplit"))
-            for cell in row.cells:
-                for p in cell.paragraphs:
-                    for run in p.runs:
-                        set_run_font_cn(run, "宋体", WIDE_TABLE_FONT_PT)
-    return n
+            for c in range(min(cols, len(r.cells))):
+                r.cells[c].width = Pt(widths[c])
+                if font_pt != base_pt:
+                    for p in r.cells[c].paragraphs:
+                        for run in p.runs:
+                            set_run_font_cn(run, "宋体", font_pt)
+        done += 1
+    return done, shrunk
 
 
 def main() -> int:
@@ -160,12 +271,12 @@ def main() -> int:
     print("  pandoc 转换完成")
 
     doc = Document(tmp)
-    n_tbl = shrink_wide_tables(doc)
+    n_tbl, n_shrunk = fit_table_columns(doc)
     n_fig = append_figures(doc, captions)
     doc.save(OUT)
     os.remove(tmp)
 
-    print(f"  宽表降字号: {n_tbl} 个; 附图追加: {n_fig} 张")
+    print(f"  列宽自适应: {n_tbl} 张表 (其中降字号 {n_shrunk} 张); 附图追加: {n_fig} 张")
     print(f"[OK] {OUT}  ({os.path.getsize(OUT)} 字节)")
     return 0
 
