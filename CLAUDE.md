@@ -11,7 +11,9 @@
 - **已知技术（不主张，交底书已主动承认）**：载重-能耗线性模型（Dorling 2017）、
   等效电量距离变换（等价改写，E=α·EED）、增量电量校验（Ngueveu 2010 已有 O(1)）、
   Held-Karp 式 DP 与标签支配（Christofides 1981）
-- 详见 `docs/patent_disclosure.md` 与 `docs/patent/NOVELTY_VERDICT.md`（含文献核查结论）
+- 详见 `docs/patent_disclosure.md`（Markdown 源）与 `docs/patent_disclosure.docx`（**交付用 Word**，
+  含 10 张附图，由 `docs/patent/docx/build_docx.py` 生成）；文献核查结论见
+  `docs/exploration/NOVELTY_VERDICT.md`
 
 ## 技术栈
 
@@ -89,6 +91,7 @@ D:\ser_9\
 │           └── custom_15_mixed.json
 ├── results/                     # benchmark 输出 (W5): benchmark_*.json + table_*.md
 ├── a3_rust/                     # Rust 落地 (W6 ✅ W7 ✅, W8 服务硬化 ✅, 109 测试)
+│                                #   ⚠️ 仅降级模式 (NN+VND); W9 精确/自适应模式未移植
 │   ├── Cargo.toml
 │   ├── README.md                # 构建/运行/API 文档 (curl 示例)
 │   ├── scripts/
@@ -110,7 +113,19 @@ D:\ser_9\
 │           ├── energy_golden.json   # numpy golden (6 fixture)
 │           └── solver_golden.json   # Python plan_multistop 输出 golden (6 fixture)
 └── docs/                        # 专利交底书 / 论文素材
-    └── patent_disclosure.md     # 专利交底书 (6 章节)
+    ├── patent_disclosure.md     # 专利交底书 Markdown 源 (可申报交付物)
+    ├── patent_disclosure.docx   # 交付用 Word (含 10 张说明书附图; 由 docx/build_docx.py 生成)
+    ├── patent/                  # 交底书配套 (母版/同类调研/大纲/场景规格/图集/数据核对)
+    │   ├── tikz/ + build.sh     # 10 张附图源与一键编译
+    │   ├── docx/                # DOCX 流水线 (pandoc + python-docx)
+    │   │   ├── make_reference.py  # 生成中文样式基准 reference.docx (宋体/黑体/eastAsia)
+    │   │   ├── build_docx.py      # 建流水线: PDF->PNG + pandoc + 附图/宽表后处理
+    │   │   └── verify_docx.py     # 校验: 公式数/表格数/图片数/正文覆盖率
+    │   └── scripts/             # 图与数据复现脚本 (从探索分支移植)
+    └── exploration/             # 探索期材料归档 (见其 README.md)
+                                 #   含 NOVELTY_VERDICT.md 文献核查结论、
+                                 #   STEP1_PERF / STEP2_THRESHOLD 精确模式过程记录;
+                                 #   ⚠️ 文中 a3_python/tw/ 路径在主干不存在
 ```
 
 ## 核心函数签名
@@ -326,6 +341,13 @@ python a3_python/benchmark.py --quick
 1. **核心是纯函数** — `plan_multistop()` 接收数据 + 配置，返回结果。不依赖网络、数据库、全局状态
 2. **算法全手写** — 几何/图算法不引重型依赖。Python 侧 PyVRP **仅用于 benchmark 对比**，不出现在 solver 核心路径中。Rust 侧不加 geo/nalgebra crate
 3. **Python 出论文，Rust 进平台** — 两阶段不割裂，算法步骤一致
+
+   > ⚠️ **当前缺口（W9 遗留，尚未消除）**：W9 新增的**精确求解模式**
+   > （`exact_battery.py`）与**自适应分级求解**（`adaptive.py`）**只在 Python 侧**，
+   > Rust 服务仍只实现降级模式（S1~S3、S6）。即"算法步骤一致"目前
+   > **不成立于这两个模块**；Rust 移植与 `A3_SCHEMA.md` §2.3 所述的
+   > 预算参数、模式回传尚未落地。**跨语言调用方不要假定行为一致。**
+   > 交底书 §8.7 描述的是本方法在服务形态下的实施方式，不等同于本仓库现状。
 
 ### 禁止事项
 

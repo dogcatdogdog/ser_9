@@ -9,7 +9,8 @@
     3. 真实最优相对几何基线的改善 = (几何基线 - 真实最优) / 真实最优
 
 输出: results/gap_rebaseline.json + markdown 表
-复现: python -X utf8 a3_python/tw/run_gap_rebaseline.py
+复现 (W9 由探索分支 a3_python/tw/ 移植到本目录):
+  python -X utf8 docs/patent/scripts/run_gap_rebaseline.py
 """
 from __future__ import annotations
 
