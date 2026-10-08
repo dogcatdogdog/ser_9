@@ -67,6 +67,7 @@ SLOT_LABEL = {
     16: "2、替代方案",
     17: "3、本发明的关键创新点",
 }
+OVERFLOW: list = []
 TABLE_FONT_OVERRIDE = {"实例组": 8.0, "目标点": 8.0, "目标点数": 9.0, "航段": 9.0}
 WIDTH_SAFETY = 1.06
 MARGIN_PT = 7.0
@@ -211,12 +212,36 @@ def fit_nested_tables(tbl, usable_pt: float) -> tuple[int, int]:
                 extra = (usable_pt - total) / cols
                 widths = [n + extra for n in need]
             else:
-                k = usable_pt / total
-                floor = (margin_pt + font_pt * 2) * WIDTH_SAFETY
-                widths = [max(floor, n * k) for n in need]
-                tot = sum(widths)
-                if tot > usable_pt:
-                    widths = [w * usable_pt / tot for w in widths]
+                # 内容总量超宽: 按 need 升序分配 —— 短列(标签/数字)先拿足所需,
+                # 长文本列分享余量并承担换行(长文本换行无妨, 短标签不该断)
+                order = sorted(range(cols), key=lambda i: need[i])
+                widths = [0.0] * cols
+                budget = usable_pt
+                remaining = list(order)
+                for pos, i in enumerate(order):
+                    rest = remaining[pos + 1:]
+                    if not rest or need[i] * len(rest) + sum(need[j] for j in rest) <= budget - need[i] + need[i]:
+                        pass
+                    # 若把 need[i] 发给它后, 余量仍够其余列各拿"不少于它"的份额, 则发足
+                    if need[i] * (len(rest) + 1) <= budget:
+                        widths[i] = need[i]
+                        budget -= need[i]
+                    else:
+                        share = budget / (len(rest) + 1)
+                        for j in remaining[pos:]:
+                            widths[j] = share
+                        break
+
+            # 逐列验算: 任何列放不下内容(含中文标签)都要报出来
+            for cidx, wpt in enumerate(widths[:cols]):
+                for r in rows:
+                    if cidx >= len(r.cells):
+                        continue
+                    tx = cell_text(r.cells[cidx]).replace(chr(10), " ").strip()
+                    if tx and est_text_width_pt(tx, font_pt) + margin_pt > wpt:
+                        OVERFLOW.append((sig, cidx, round(est_text_width_pt(tx, font_pt) + margin_pt, 1),
+                                         round(wpt, 1), tx[:16]))
+                        break
 
             nested.autofit = False
             nested.alignment = 1
@@ -354,6 +379,12 @@ def main() -> int:
 
     doc.save(TARGET)
     print(f"   附图 {n_fig} 张")
+    if OVERFLOW:
+        print(f"   [!] 放不下的列 {len(OVERFLOW)} 处:")
+        for sig, ci, need, w, tx in OVERFLOW[:12]:
+            print(f"       表[{sig[:8]}] c{ci} 需{need} 可用{w}  {tx}")
+    else:
+        print("   所有列均放得下 ✅")
     print(f"[OK] {TARGET} ({os.path.getsize(TARGET)} 字节)")
     return 0
 
