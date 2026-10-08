@@ -155,6 +155,59 @@ pub fn plan_multistop(
 ) -> Result<RoutePlanResp, ApiError>
 ```
 
+### 2.3 Python 自适应分级求解入口（W9）
+
+> 专利主张「自适应分级求解」的代码载体。契约变更时须同步本节、
+> `a3_python/adaptive.py` 的模块 docstring 与 `CLAUDE.md`。
+
+```python
+def plan_multistop_adaptive(
+    targets: list[Target],
+    home: GeoPoint,
+    drone: DroneSpec,
+    *,
+    time_limit_secs: float = 5.0,     # 本次求解时间预算 (对齐 http.rs ServiceConfig)
+    memory_limit_mb: float = 250.0,   # 本次求解峰值内存预算 (并发时传 总量/并发数)
+    seed: int = 42
+) -> RoutePlan:
+    """
+    按预算在"精确模式"与"降级模式"间自动选择; 返回结构不变。
+    Raises: ValueError —— n < 1 或 n > 20
+    """
+```
+
+**行为**（三步，顺序固定）：
+
+1. 先跑一次 `plan_multistop`——它既是降级解，又是精确模式的剪枝上界；
+2. `choose_mode(n, time_limit_secs, memory_limit_mb)` 按预算决策
+   （点数越界 → 时间预算不足 → 内存预算不足，任一不满足即降级，理由写入 `ModeDecision.reason`）；
+3. 走精确模式则调 `solve_energy_exact_battery`，上界取第 1 步解的**精确能耗**
+   （不用 `RoutePlan.total_energy_consumed`——它保留 2 位小数，可能低于真值而被误剪）。
+
+**模式标注（`RoutePlan` 结构不新增字段）**：实际模式以说明性条目追加在
+`warnings` 末尾，可用 `solve_mode_of(plan)` 读回：
+
+| 常量 | 值 | 说明 |
+|---|---|---|
+| `MODE_EXACT` / `MODE_HEURISTIC` | `"exact"` / `"heuristic"` | 两种模式标识 |
+| `MODE_WARNING_PREFIX` | `"[adaptive]"` | 说明性条目前缀; 消费方按此前缀过滤 |
+| 条目格式 | `[adaptive] mode=<m> n=<n> est_time=<t>s est_memory=<mb>MB` | 该条目**不是错误**, 不影响 `feasible` |
+
+**预算默认值**：`DEFAULT_TIME_LIMIT_SECS = 5.0`、`DEFAULT_MEMORY_LIMIT_MB = 250.0`（单请求口径）。
+
+**资源估算**：`estimate_exact_resources(n)` 以 n=20 为锚点按每点约 2× 指数外推再乘
+1.5 安全系数，**刻意保守**（n=14~20 全部实测点满足"估算 ≥ 实测"）。多并发时应传
+`内存上限 / 并发数`；保守估算取向下宁可降级（~0.1 s 出解）也不 OOM。
+
+**边界**：两种模式同受 `solver.MAX_TARGETS = 20` 约束；`n > 20` 抛 `ValueError`，
+**无降级路径**（精确模式的 `MAX_EXACT_BATTERY_POINTS` 亦为 20）。
+
+> ⚠️ **与 Rust `Defaults.time_limit_secs` 的语义差异（易混）**：
+> 两者同名但含义不同 —— Python 侧是**模式选择的预算依据**（决定走精确还是降级）；
+> Rust `a3_rust/src/http.rs` 的 `A3_TIME_LIMIT_SECS`（默认 5.0）是**求解时限兜底**
+> （正常求解 <150 ms，不触发）。Rust 服务当前**只实现降级模式**（S1~S3、S6），
+> 精确模式与模式选择尚未移植；跨语言调用方不要假定行为一致。
+
 ## 3. JSON Schema（HTTP API）
 
 ### POST /plan — Request
