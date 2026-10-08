@@ -114,7 +114,11 @@ D:\ser_9\
 │           └── solver_golden.json   # Python plan_multistop 输出 golden (6 fixture)
 └── docs/                        # 专利交底书 / 论文素材
     ├── patent_disclosure.md     # 专利交底书 Markdown 源 (可申报交付物)
-    ├── patent_disclosure.docx   # 交付用 Word (含 10 张说明书附图; 由 docx/build_docx.py 生成)
+    ├── patent_disclosure.docx   # 通用版 Word (含 10 张说明书附图; 由 docx/build_docx.py 生成)
+    ├── content_for_template.md  # 按机构模板槽位重组的内容 (模板版的数据源)
+    ├── 1-长沙军民先进技术研究有限公司技术交底书模板.docx   # 机构下发的原始模板 (不动)
+    ├── 技术交底书-一种基于自适应分级求解的无人机多目标路径规划方法.docx  # 模板版交付物
+    ├── 交付/附图/               # 10 张附图的 PNG + PDF (中文名, 交代理人可取源文件)
     ├── patent/                  # 交底书配套 (母版/同类调研/大纲/场景规格/图集/数据核对)
     │   ├── tikz/ + build.sh     # 10 张附图源与一键编译
     │   ├── docx/                # DOCX 流水线 (pandoc + python-docx)
@@ -122,7 +126,9 @@ D:\ser_9\
     │   │   ├── build_docx.py        # 建流水线: PDF->PNG + pandoc + 列宽自适应/附图
     │   │   ├── verify_docx.py       # 校验: 公式数/表格数/图片数/正文覆盖率
     │   │   ├── table_audit.py       # 逐表: tblGrid 列宽 vs 内容所需宽度
-    │   │   └── pdf_token_check.py   # ground truth: 导出 PDF 检查短标记是否被换行拆开
+    │   │   ├── pdf_token_check.py   # ground truth: 导出 PDF 检查短标记是否被换行拆开
+    │   │   ├── probe_template.py    # 解析机构模板的单元格网格/合并结构
+    │   │   └── build_template_docx.py # 按长沙军民模板撰写交底书(在模板副本上填写)
     │   └── scripts/             # 图与数据复现脚本 (从探索分支移植)
     └── exploration/             # 探索期材料归档 (见其 README.md)
                                  #   含 NOVELTY_VERDICT.md 文献核查结论、
