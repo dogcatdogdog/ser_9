@@ -192,18 +192,18 @@ def fit_nested_tables(tbl, usable_pt: float) -> tuple[int, int]:
                 return nd
 
             sig = cell_text(rows[0].cells[0]) if len(rows[0].cells) else ""
-            font_pt, need = 10.5, need_at(10.5)
+            font_pt, need = 9.5, need_at(9.5)
             if sig in TABLE_FONT_OVERRIDE:
                 font_pt, need = TABLE_FONT_OVERRIDE[sig], need_at(TABLE_FONT_OVERRIDE[sig])
                 shrunk += 1
             elif sum(need) > usable_pt:
-                for cand in (10.0, 9.5, 9.0, 8.5, 8.0, 7.5):
+                for cand in (9.5, 9.0, 8.5, 8.0, 7.5, 7.0, 6.5):
                     nd = need_at(cand)
                     if sum(nd) <= usable_pt:
                         font_pt, need = cand, nd
                         break
                 else:
-                    font_pt, need = 7.5, need_at(7.5)
+                    font_pt, need = 6.5, need_at(6.5)
                 shrunk += 1
 
             total = sum(need)
