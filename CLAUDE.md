@@ -118,9 +118,11 @@ D:\ser_9\
     ├── patent/                  # 交底书配套 (母版/同类调研/大纲/场景规格/图集/数据核对)
     │   ├── tikz/ + build.sh     # 10 张附图源与一键编译
     │   ├── docx/                # DOCX 流水线 (pandoc + python-docx)
-    │   │   ├── make_reference.py  # 生成中文样式基准 reference.docx (宋体/黑体/eastAsia)
-    │   │   ├── build_docx.py      # 建流水线: PDF->PNG + pandoc + 附图/宽表后处理
-    │   │   └── verify_docx.py     # 校验: 公式数/表格数/图片数/正文覆盖率
+    │   │   ├── make_reference.py    # 生成中文样式基准 reference.docx (宋体/黑体/eastAsia)
+    │   │   ├── build_docx.py        # 建流水线: PDF->PNG + pandoc + 列宽自适应/附图
+    │   │   ├── verify_docx.py       # 校验: 公式数/表格数/图片数/正文覆盖率
+    │   │   ├── table_audit.py       # 逐表: tblGrid 列宽 vs 内容所需宽度
+    │   │   └── pdf_token_check.py   # ground truth: 导出 PDF 检查短标记是否被换行拆开
     │   └── scripts/             # 图与数据复现脚本 (从探索分支移植)
     └── exploration/             # 探索期材料归档 (见其 README.md)
                                  #   含 NOVELTY_VERDICT.md 文献核查结论、
