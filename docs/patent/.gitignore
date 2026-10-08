@@ -11,3 +11,12 @@ docx/figures_png/
 docx/_body.docx
 docx/_probe.docx
 docx/_check.pdf
+
+# docx 校验中间产物
+docx/_chk.*
+docx/_bbox*.xhtml
+docx/_wrap.txt
+docx/_inspect.ps1
+
+# Word 打开文档时生成的锁文件
+~$*

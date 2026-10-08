@@ -46,7 +46,10 @@ MIN_SLACK_PT = 1.5           # 每列至少保留的余量(pt)
 # 个别表的字号覆盖: 键=表首行首格文字(签名, 避免用会漂移的表序号), 值=pt
 # 仅用于内容确实超宽、通用规则压不下的表
 TABLE_FONT_OVERRIDE: dict[str, float] = {
-    "实例组": 8.0,      # 实例配置表: 7 列且多处长串, 需更小字号
+    "实例组": 8.0,      # 实例配置表: 7 列且多处长串
+    "目标点": 8.0,      # 极角/需求量表: 11 列
+    "目标点数": 9.0,    # 耗时/内存表: 8 列
+    "航段": 9.0,        # 逐段表: 7 列
 }
 
 # 图文件前缀 -> 图号(与交底书 §七 的 "图 N" 对应)
@@ -139,6 +142,25 @@ def est_text_width_pt(text: str, font_pt: float) -> float:
     return w
 
 
+# OOXML 对 tblPr 子元素有严格顺序要求; 顺序错误 Word 会忽略该元素
+TBLPR_ORDER = [
+    "tblStyle", "tblpPr", "tblOverlap", "bidiVisual", "tblStyleRowBandSize",
+    "tblStyleColBandSize", "tblW", "jc", "tblCellSpacing", "tblInd",
+    "tblBorders", "shd", "tblLayout", "tblCellMar", "tblLook",
+    "tblCaption", "tblDescription", "tblPrChange",
+]
+
+
+def reorder_tblPr(tblPr) -> None:
+    """把 tblPr 的子元素按 schema 顺序重排(否则 Word 忽略乱序元素)"""
+    kids = list(tblPr)
+    def rank(el):
+        tag = el.tag.split("}")[-1]
+        return TBLPR_ORDER.index(tag) if tag in TBLPR_ORDER else len(TBLPR_ORDER)
+    for el in sorted(kids, key=rank):
+        tblPr.append(el)
+
+
 def cell_text(cell) -> str:
     return "".join(p.text for p in cell.paragraphs).strip()
 
@@ -163,7 +185,7 @@ def fit_table_columns(doc: Document, base_pt: float = 10.5) -> tuple[int, int]:
     if sec.top_margin is None:
         sec.top_margin = sec.bottom_margin = Cm(2.54)
     usable_pt = Emu(sec.page_width - sec.left_margin - sec.right_margin).pt
-    margin_pt = 4.5   # 单元格左右边距合计(下方设为每侧 0.08cm)
+    margin_pt = 7.0   # 单元格左右边距合计(实际每侧 0.08cm=2.27pt, 留 2.5pt 余量)
     done = shrunk = 0
 
     for tbl in doc.tables:
@@ -194,14 +216,14 @@ def fit_table_columns(doc: Document, base_pt: float = 10.5) -> tuple[int, int]:
             need = compute_need(font_pt)
             shrunk += 1
         elif sum(need) > usable_pt:
-            for cand in (10.0, 9.5, WIDE_TABLE_FONT_PT, 8.5):
+            for cand in (10.0, 9.5, 9.0, 8.5, 8.0):
                 nd = compute_need(cand)
                 if sum(nd) <= usable_pt:
                     font_pt, need = cand, nd
                     break
             else:
-                font_pt = 8.5
-                need = compute_need(8.5)
+                font_pt = 8.0
+                need = compute_need(8.0)
             shrunk += 1
 
         # 2b) 分配: 每列先满足 need(含安全系数), 余量**摊到所有列**,
@@ -240,10 +262,22 @@ def fit_table_columns(doc: Document, base_pt: float = 10.5) -> tuple[int, int]:
         layout = OxmlElement("w:tblLayout")
         layout.set(qn("w:type"), "fixed")
         tblPr.append(layout)
+        # tblLayout=fixed 时 Word 以 tblGrid 为准 -> 必须同步 gridCol 宽度
+        grid = tbl._tbl.find(qn("w:tblGrid"))
+        if grid is None:
+            grid = OxmlElement("w:tblGrid")
+            tbl._tbl.insert(list(tbl._tbl).index(tblPr) + 1, grid)
+        gcs = grid.findall(qn("w:gridCol"))
+        while len(gcs) < cols:
+            grid.append(OxmlElement("w:gridCol"))
+            gcs = grid.findall(qn("w:gridCol"))
+        for i, gc in enumerate(gcs[:cols]):
+            gc.set(qn("w:w"), str(int(round(widths[i] * 20))))
         tblW = OxmlElement("w:tblW")
         tblW.set(qn("w:w"), str(int(sum(widths) * 20)))
         tblW.set(qn("w:type"), "dxa")
         tblPr.append(tblW)
+        reorder_tblPr(tblPr)          # 所有元素加完后按 schema 顺序重排
 
         for r in rows:
             trPr = r._tr.get_or_add_trPr()

@@ -225,7 +225,7 @@ $\beta$ 为载重敏感系数（Wh/(m·kg)，即斜率）。相应地，一段�
 本发明的优化目标为：在满足载重上限与电池续航约束的前提下，
 **使访问序列的总等效电量距离最小**，即
 
-$$\min_{\pi}\ \sum_{k=0}^{n} \mathrm{EED}\bigl(\pi_k,\pi_{k+1},L_k\bigr)$$
+$$\min_{\pi}\ \sum_{k=0}^{n} \text{EED}\bigl(\pi_k,\pi_{k+1},L_k\bigr)$$
 
 其中 $\pi_0=\pi_{n+1}=h$（仓库），$L_k$ 为访问完前 $k$ 个点后的剩余载重
 （即第 $k$ 段出发时的载重，$L_k=\sum_{m>k} q_{\pi_m}$）。
@@ -248,7 +248,7 @@ $$\min_{\pi}\ \sum_{k=0}^{n} \mathrm{EED}\bigl(\pi_k,\pi_{k+1},L_k\bigr)$$
 | $\beta$ | 载重敏感系数（斜率） | Wh/(m·kg) |
 | $C$ | 载重上限 | kg |
 | $B$ | 电池容量 | Wh |
-| $\mathrm{EED}(i,j,L)$ | 边 $i\to j$ 在出发载重 $L$ 下的等效电量距离（见 5.2 节） | m |
+| $\text{EED}(i,j,L)$ | 边 $i\to j$ 在出发载重 $L$ 下的等效电量距离（见 5.2 节） | m |
 | $\pi$ | 访问顺序（目标点的一个排列） | — |
 | $Q$ | 已访问点集合（可用位向量表示） | — |
 | $R$ | 未访问点集合 | — |
@@ -267,17 +267,17 @@ $\beta$ 为载重敏感系数。该线性关系可参见 Dorling 等 2017 年的
 在此基础上，对任意两点 $i$、$j$ 之间的航段，定义其在出发载重 $L$ 下的
 **等效电量距离**（Equivalent Energy Distance, EED）：
 
-$$\mathrm{EED}(i,j,L)\;=\;d_{ij}\cdot\frac{\alpha+\beta L}{\alpha}\;=\;d_{ij}\Bigl(1+\frac{\beta}{\alpha}L\Bigr)$$
+$$\text{EED}(i,j,L)\;=\;d_{ij}\cdot\frac{\alpha+\beta L}{\alpha}\;=\;d_{ij}\Bigl(1+\frac{\beta}{\alpha}L\Bigr)$$
 
-其物理含义是：该航段的实际能耗为 $\mathrm{EED}(i,j,L)\cdot\alpha$，
+其物理含义是：该航段的实际能耗为 $\text{EED}(i,j,L)\cdot\alpha$，
 即等效电量距离乘以空载能耗率即得真实能耗（Wh）。
-当 $L=0$ 时 $\mathrm{EED}=d_{ij}$，退化为几何距离。
+当 $L=0$ 时 $\text{EED}=d_{ij}$，退化为几何距离。
 **输出**：以等效电量距离为权重的航段代价。
 
 图 2 给出能耗率随载重线性增长的关系（含纵截距 $\alpha$ 与斜率 $\beta$ 的标注），
 图 3 给出等效电量距离的定义与“空载退化”性质。
 
-**关于 $\mathrm{EED}$ 的性质**：由定义可见，$\mathrm{EED}$ 是 $(i,j,L)$ 的**三元函数**，
+**关于 $\text{EED}$ 的性质**：由定义可见，$\text{EED}$ 是 $(i,j,L)$ 的**三元函数**，
 而**不是一个与访问顺序无关的固定矩阵**——这正是本问题区别于经典 TSP/VRP 的要点，
 也是 3.2 节第二类方案必须显式建模的原因。
 
@@ -287,13 +287,13 @@ $$\mathrm{EED}(i,j,L)\;=\;d_{ij}\cdot\frac{\alpha+\beta L}{\alpha}\;=\;d_{ij}\Bi
 统一折算为一个**可比较、可叠加的距离标度**，
 使 5.3~5.5 节的构造与搜索过程可以用同一量纲处理边代价。
 
-由于实际能耗 $d(\alpha+\beta L)$ 与等效电量距离 $\mathrm{EED}=d(\alpha+\beta L)/\alpha$
+由于实际能耗 $d(\alpha+\beta L)$ 与等效电量距离 $\text{EED}=d(\alpha+\beta L)/\alpha$
 之间**仅相差机型常数因子 $\alpha$**，“以总等效电量距离最小为目标”与
 “以总能耗最小为目标”在数学上**完全等价**（可行解集合与最优解均相同）。
 因此本步骤的实质是**同一优化目标的等价书写形式**：它不改变优化问题的解，
 其价值在于把状态相关的能耗改写为可与几何距离直接比较、叠加的“距离”量纲，
 为后续步骤提供统一的代价表达。
-此外，因 $\mathrm{EED}$ 依赖访问状态（变量 $L$），经典的基于**固定矩阵**的距离型算子
+此外，因 $\text{EED}$ 依赖访问状态（变量 $L$），经典的基于**固定矩阵**的距离型算子
 **仍需按当前载重逐段求值**（例如 5.4 节的增量评估、8.8 节节约算法的节约值计算，
 均须按位置对应的载重计算），本步骤也并未使算子无需改造。
 
@@ -323,8 +323,8 @@ $$\mathrm{EED}(i,j,L)\;=\;d_{ij}\cdot\frac{\alpha+\beta L}{\alpha}\;=\;d_{ij}\Bi
 3. **贪心构造（电量感知最近邻）**：自仓库出发，在每一步从未访问点中，
    选择满足下式且等效电量距离最小的点 $j$ 作为下一个访问点：
 
-   $$B_{\text{cur}} \;\ge\; \alpha\cdot\mathrm{EED}(i,j,L_{\text{cur}})
-     \;+\;\alpha\cdot\mathrm{EED}(j,h,L_{\text{cur}}-q_j)$$
+   $$B_{\text{cur}} \;\ge\; \alpha\cdot\text{EED}(i,j,L_{\text{cur}})
+     \;+\;\alpha\cdot\text{EED}(j,h,L_{\text{cur}}-q_j)$$
 
    其中 $B_{\text{cur}}$ 为当前剩余电量，$i$ 为当前所在点，$L_{\text{cur}}$ 为离开 $i$ 时的载重，
    上式右端第一项为飞抵 $j$ 的能耗、第二项为由 $j$ 直接返航的能耗
@@ -416,9 +416,9 @@ $$\mathrm{EED}(i,j,L)\;=\;d_{ij}\cdot\frac{\alpha+\beta L}{\alpha}\;=\;d_{ij}\Bi
    $$\hat{T}(n)=K\left(T_0+T_{20}\cdot 2^{\,n-20}\right),\qquad
      \hat{M}(n)=K\left(M_0+M_{20}\cdot 2^{\,n-20}\right)$$
 
-   其中 $T_0$、$M_0$ 为**与 $n$ 无关的固定开销**（本实施例取 $T_0=0.05\ \mathrm{s}$、
-   $M_0=0.5\ \mathrm{MB}$）；$T_{20}$、$M_{20}$ 为**以 $n=20$ 为锚的指数项系数**
-   （本实施例取 $T_{20}=2.0\ \mathrm{s}$、$M_{20}=155.8\ \mathrm{MB}$，取自 $n=20$ 实测值）；
+   其中 $T_0$、$M_0$ 为**与 $n$ 无关的固定开销**（本实施例取 $T_0=0.05\ \text{s}$、
+   $M_0=0.5\ \text{MB}$）；$T_{20}$、$M_{20}$ 为**以 $n=20$ 为锚的指数项系数**
+   （本实施例取 $T_{20}=2.0\ \text{s}$、$M_{20}=155.8\ \text{MB}$，取自 $n=20$ 实测值）；
    $2^{\,n-20}$ 表示**每增加一个目标点，耗时与峰值内存均约按 2 倍增长**；
    $K>1$ 为**安全系数**，为跨机器与并发负载预留余量（本实施例取 1.5）。
 
@@ -471,7 +471,7 @@ $$\mathrm{EED}(i,j,L)\;=\;d_{ij}\cdot\frac{\alpha+\beta L}{\alpha}\;=\;d_{ij}\Bi
 
 **输入**：目标点集合、仓库、机型参数，以及（可选的）由 S3 降级解给出的**初始上界 $UB$**。
 **处理**：在给定规模下求**总能耗最小**的访问顺序，即求
-$\min_{\pi}\sum_k \mathrm{EED}(\pi_k,\pi_{k+1},L_k)$ 的**全局最优解**并判定可行性。
+$\min_{\pi}\sum_k \text{EED}(\pi_k,\pi_{k+1},L_k)$ 的**全局最优解**并判定可行性。
 本步骤要解决的问题是：让“精确最优”在服务预算所允许的规模（$n\le 20$）内**可在线求得**
 （原朴素实现 $n=20$ 需约 96.5 s，超出在线预算）。其做法由下列四项构成。
 
@@ -484,10 +484,10 @@ $\min_{\pi}\sum_k \mathrm{EED}(\pi_k,\pi_{k+1},L_k)$ 的**全局最优解**并�
 **（b）分层状态推进 + 批量转移**。记状态 $(Q,j)$ 的最小累计耗能为 $F(Q,j)$，
 即“**恰好**已访问集合 $Q$ 中的全部点、且当前位于点 $j$”时的最小耗能。其递推式为：
 
-$$F\bigl(Q\cup\{u\},u\bigr)=\min_{j\in Q}\Bigl[F(Q,j)+d_{ju}\cdot\bigl(\alpha+\beta\cdot\mathrm{load}(Q)\bigr)\Bigr],
-\qquad \mathrm{load}(Q)=\sum_{i\notin Q}q_i$$
+$$F\bigl(Q\cup\{u\},u\bigr)=\min_{j\in Q}\Bigl[F(Q,j)+d_{ju}\cdot\bigl(\alpha+\beta\cdot\text{load}(Q)\bigr)\Bigr],
+\qquad \text{load}(Q)=\sum_{i\notin Q}q_i$$
 
-其中 $u$ 为下一个访问点，$\mathrm{load}(Q)$ 为离开当前点时的载重
+其中 $u$ 为下一个访问点，$\text{load}(Q)$ 为离开当前点时的载重
 （= 尚未投递需求之和）。**初值**为：$F(\varnothing,h)=0$；
 对任一单点集合，$F(\{j\},j)=d_{hj}\cdot(\alpha+\beta\sum_i q_i)$
 （自仓库出发时载重为总需求量）。最优值取
@@ -501,7 +501,7 @@ $\min_j F(\{t_1,\dots,t_n\},j)+d_{jh}\cdot\alpha$。
 
 层内所有状态向未访问点的转移被重组为**按目标点分组的批量运算**：
 即对固定的下一个访问点 $u$，取出该层中所有不含 $u$ 的状态 $Q$，
-一次性算出候选代价矩阵 $F(Q,j)+d_{ju}\cdot(\alpha+\beta\cdot\mathrm{load}(Q))$，
+一次性算出候选代价矩阵 $F(Q,j)+d_{ju}\cdot(\alpha+\beta\cdot\text{load}(Q))$，
 再按行取最小前驱——此即“**按 $u$ 分组、对同层内所有不含 $u$ 的集合一次求最小**”的批量转移。
 
 **（c）电量约束的施加**。递推的每一次转移之后即校验该状态的累计耗能是否超过电池容量：
@@ -528,8 +528,8 @@ $\min_j F(\{t_1,\dots,t_n\},j)+d_{jh}\cdot\alpha$。
   且各抵达段互不相同、返航段载重为 $0$，故 $\beta$ 部分 $\ge \beta\sum_{i\in R}q_i\cdot d^{\min}_{\text{in}}(i)$。
   两项相加即得。该下界较“一律以 $\alpha$ 乘距离”的朴素版本更强：它利用
   “载重非负 ⇒ 能耗率 $\ge\alpha$”这一事实，把 $\beta q_i\cdot d^{\min}_{\text{in}}(i)$ 也计入下界。
-- **剪枝判据**：凡 $\mathrm{cost}+LB(Q)>UB+\varepsilon$ 的状态整行丢弃
-  （任何延伸的完成代价 $\ge \mathrm{cost}+LB(Q)>UB$，不可能更优，故最优解不丢）；
+- **剪枝判据**：凡 $\text{cost}+LB(Q)>UB+\varepsilon$ 的状态整行丢弃
+  （任何延伸的完成代价 $\ge \text{cost}+LB(Q)>UB$，不可能更优，故最优解不丢）；
   满集合层不剪枝。
 
 **正确性**：本步骤的加速实现与“朴素三重循环参照实现”及**暴力枚举**
@@ -1167,7 +1167,7 @@ $t_{10}\to t_9\to t_8\to t_7\to t_6\to t_5\to t_4\to t_3\to t_2\to t_1$，
 （1）**构造环节的替代**：S2 中的多起点最近邻构造，可替换为改造后的
 Clarke-Wright 节约算法——以等效电量距离计算点对 $(i,j)$ 的节约值
 
-$$s(i,j)=\mathrm{EED}(i,h,L_P-q_i)+\mathrm{EED}(h,j,L_P)-\mathrm{EED}(i,j,L_P-q_i)$$
+$$s(i,j)=\text{EED}(i,h,L_P-q_i)+\text{EED}(h,j,L_P)-\text{EED}(i,j,L_P-q_i)$$
 
 其中 $L_P$ 为总需求量（即自仓库出发时的载重）。
 **注意**：该式在节约值初筛阶段使用 $L_P$ 与 $L_P-q_i$ 作为近似载重
