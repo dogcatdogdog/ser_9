@@ -40,6 +40,14 @@ PDFTOPPM = r"D:\texlive\2025\bin\windows\pdftoppm.exe"
 FIG_WIDTH_CM = 15.5          # 图片显示宽度(A4 竖排可用宽度约 16cm)
 WIDE_TABLE_COLS = 9          # 列数 >= 此值视为宽表, 降字号
 WIDE_TABLE_FONT_PT = 9.0     # 小五
+WIDTH_SAFETY = 1.06          # 估算宽度的安全系数(字体度量与估算的偏差余量)
+MIN_SLACK_PT = 1.5           # 每列至少保留的余量(pt)
+
+# 个别表的字号覆盖: 键=表首行首格文字(签名, 避免用会漂移的表序号), 值=pt
+# 仅用于内容确实超宽、通用规则压不下的表
+TABLE_FONT_OVERRIDE: dict[str, float] = {
+    "实例组": 8.0,      # 实例配置表: 7 列且多处长串, 需更小字号
+}
 
 # 图文件前缀 -> 图号(与交底书 §七 的 "图 N" 对应)
 FIG_FILES = [
@@ -174,13 +182,18 @@ def fit_table_columns(doc: Document, base_pt: float = 10.5) -> tuple[int, int]:
                     longest = max((est_text_width_pt(seg, font_pt)
                                    for seg in txt.replace("\n", " ").split("  ")),
                                   default=0.0)
-                    nd[c] = max(nd[c], longest + margin_pt)
+                    nd[c] = max(nd[c], (longest + margin_pt) * WIDTH_SAFETY)
             return nd
 
         # 2) 迭代选字号: 在能"放得下各列最长行"的前提下取最大字号
+        sig = cell_text(rows[0].cells[0]) if len(rows[0].cells) else ""
         font_pt = base_pt
         need = compute_need(base_pt)
-        if sum(need) > usable_pt:
+        if sig in TABLE_FONT_OVERRIDE:
+            font_pt = TABLE_FONT_OVERRIDE[sig]
+            need = compute_need(font_pt)
+            shrunk += 1
+        elif sum(need) > usable_pt:
             for cand in (10.0, 9.5, WIDE_TABLE_FONT_PT, 8.5):
                 nd = compute_need(cand)
                 if sum(nd) <= usable_pt:
@@ -191,30 +204,23 @@ def fit_table_columns(doc: Document, base_pt: float = 10.5) -> tuple[int, int]:
                 need = compute_need(8.5)
             shrunk += 1
 
-        # 2b) 水填充式分配: 需求小于均分的列只拿所需, 余量给紧缺的列
-        fair = usable_pt / cols
-        widths = [0.0] * cols
-        slack_idx = [i for i in range(cols) if need[i] <= fair]
-        tight_idx = [i for i in range(cols) if need[i] > fair]
-        for i in slack_idx:
-            widths[i] = need[i]
-        rest = usable_pt - sum(widths[i] for i in slack_idx)
-        if tight_idx:
-            tot_need = sum(need[i] for i in tight_idx)
-            if tot_need <= rest:                     # 余量足够, 按需分配再摊余
-                for i in tight_idx:
-                    widths[i] = need[i]
-                extra = (rest - tot_need) / len(tight_idx)
-                for i in tight_idx:
-                    widths[i] += extra
-            else:                                    # 仍不够 -> 按需等比压缩
-                k = rest / tot_need
-                floor = margin_pt + font_pt * 2      # 至少放得下 2 个汉字
-                for i in tight_idx:
-                    widths[i] = max(floor, need[i] * k)
+        # 2b) 分配: 每列先满足 need(含安全系数), 余量**摊到所有列**,
+        #     使每列都留有余量(避免"恰好等于所需"导致的临界断行)
+        total_need = sum(need)
+        if total_need <= usable_pt:
+            extra = (usable_pt - total_need) / cols
+            widths = [n + extra for n in need]
+        else:                                        # 放不下 -> 等比压缩 + 下限, 再归一到版心
+            k = usable_pt / total_need
+            floor = (margin_pt + font_pt * 2) * WIDTH_SAFETY
+            widths = [max(floor, n * k) for n in need]
+            s = sum(widths)
+            if s > usable_pt:
+                widths = [w * usable_pt / s for w in widths]
 
-        # 3) 写入固定列宽
+        # 3) 写入固定列宽 + 表格居中
         tbl.autofit = False
+        tbl.alignment = 1        # WD_TABLE_ALIGNMENT.CENTER
         tblPr = tbl._tbl.tblPr
         for tag in ("w:tblLayout", "w:tblW"):
             old = tblPr.find(qn(tag))
@@ -249,6 +255,10 @@ def fit_table_columns(doc: Document, base_pt: float = 10.5) -> tuple[int, int]:
                     for p in r.cells[c].paragraphs:
                         for run in p.runs:
                             set_run_font_cn(run, "宋体", font_pt)
+                    # 单元格内的公式/空 run 也要跟随字号
+                    for p in r.cells[c].paragraphs:
+                        p.paragraph_format.space_before = Pt(0)
+                        p.paragraph_format.space_after = Pt(0)
         done += 1
     return done, shrunk
 
