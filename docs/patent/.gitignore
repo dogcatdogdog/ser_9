@@ -20,3 +20,6 @@ docx/_inspect.ps1
 
 # Word 打开文档时生成的锁文件
 ~$*
+
+# 交付副本(按发明名称命名, 由 build_docx.py 随内容自动重建)
+../一种基于*.docx

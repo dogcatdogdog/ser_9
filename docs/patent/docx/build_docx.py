@@ -35,6 +35,8 @@ PDF_DIR = os.path.join(REPO, "docs", "patent", "pdf")
 PNG_DIR = os.path.join(HERE, "figures_png")
 REF = os.path.join(HERE, "reference.docx")
 OUT = os.path.join(REPO, "docs", "patent_disclosure.docx")
+# 交付用的"正式名称"副本: 文件名取自交底书一级标题, 随内容自动同步
+OUT_NAMED_DIR = os.path.join(REPO, "docs")
 
 PDFTOPPM = r"D:\texlive\2025\bin\windows\pdftoppm.exe"
 FIG_WIDTH_CM = 15.5          # 图片显示宽度(A4 竖排可用宽度约 16cm)
@@ -318,6 +320,15 @@ def main() -> int:
     n_tbl, n_shrunk = fit_table_columns(doc)
     n_fig = append_figures(doc, captions)
     doc.save(OUT)
+
+    # 另存一份以发明名称命名的副本(交付用); 名称取自 md 的一级标题
+    title = next((ln[2:].strip() for ln in md_text.splitlines()
+                  if ln.startswith("# ")), None)
+    named = os.path.join(OUT_NAMED_DIR, f"{title}.docx") if title else None
+    if named:
+        import shutil
+        shutil.copyfile(OUT, named)
+        print(f"  交付副本: {os.path.basename(named)}")
     os.remove(tmp)
 
     print(f"  列宽自适应: {n_tbl} 张表 (其中降字号 {n_shrunk} 张); 附图追加: {n_fig} 张")
