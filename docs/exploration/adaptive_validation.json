@@ -1,0 +1,135 @@
+{
+  "_superseded": "已作废，勿引用。本次运行用 tracemalloc 包裹计时，耗时失真（对纯 Python 参照实现惩罚 11×），据此得出的 recommended_exact_threshold_n=0 错误。正确结论：精确模式覆盖 n<=20。修正见 docs/exploration/STEP2_THRESHOLD.md §3.1 与 STEP1_PERF.md §0；权威数据见 results/step1_perf_clean.json。",
+  "_superseded_on": "2026-09-10",
+  "service_time_budget_s": 5.0,
+  "service_mem_budget_mb": 250.0,
+  "recommended_exact_threshold_n": 0,
+  "by_n": [
+    {
+      "n": 15,
+      "exact_time_s_mean": 19.74,
+      "exact_peak_mb_max": 19.6,
+      "within_service_budget": false,
+      "heur_gap_pct_mean": 1.712,
+      "same_sequence": 0,
+      "cases": 2
+    },
+    {
+      "n": 16,
+      "exact_time_s_mean": 45.92,
+      "exact_peak_mb_max": 41.0,
+      "within_service_budget": false,
+      "heur_gap_pct_mean": 2.412,
+      "same_sequence": 0,
+      "cases": 2
+    },
+    {
+      "n": 17,
+      "exact_time_s_mean": 107.8,
+      "exact_peak_mb_max": 85.6,
+      "within_service_budget": false,
+      "heur_gap_pct_mean": 2.958,
+      "same_sequence": 0,
+      "cases": 2
+    },
+    {
+      "n": 18,
+      "exact_time_s_mean": 223.25,
+      "exact_peak_mb_max": 178.7,
+      "within_service_budget": false,
+      "heur_gap_pct_mean": 0.1,
+      "same_sequence": 1,
+      "cases": 2
+    }
+  ],
+  "rows": [
+    {
+      "n": 15,
+      "seed": 0,
+      "exact_time_s": 19.83,
+      "exact_peak_mb": 19.6,
+      "exact_feasible": true,
+      "heur_ms": 21.3,
+      "heur_feasible": true,
+      "same_sequence": false,
+      "gap_pct": 3.162
+    },
+    {
+      "n": 15,
+      "seed": 1,
+      "exact_time_s": 19.66,
+      "exact_peak_mb": 19.6,
+      "exact_feasible": true,
+      "heur_ms": 48.7,
+      "heur_feasible": true,
+      "same_sequence": false,
+      "gap_pct": 0.263
+    },
+    {
+      "n": 16,
+      "seed": 0,
+      "exact_time_s": 45.9,
+      "exact_peak_mb": 41.0,
+      "exact_feasible": true,
+      "heur_ms": 45.3,
+      "heur_feasible": true,
+      "same_sequence": false,
+      "gap_pct": 1.458
+    },
+    {
+      "n": 16,
+      "seed": 1,
+      "exact_time_s": 45.95,
+      "exact_peak_mb": 41.0,
+      "exact_feasible": true,
+      "heur_ms": 53.3,
+      "heur_feasible": true,
+      "same_sequence": false,
+      "gap_pct": 3.365
+    },
+    {
+      "n": 17,
+      "seed": 0,
+      "exact_time_s": 107.83,
+      "exact_peak_mb": 85.6,
+      "exact_feasible": true,
+      "heur_ms": 61.7,
+      "heur_feasible": true,
+      "same_sequence": false,
+      "gap_pct": 0.431
+    },
+    {
+      "n": 17,
+      "seed": 1,
+      "exact_time_s": 107.76,
+      "exact_peak_mb": 85.6,
+      "exact_feasible": true,
+      "heur_ms": 58.2,
+      "heur_feasible": true,
+      "same_sequence": false,
+      "gap_pct": 5.486
+    },
+    {
+      "n": 18,
+      "seed": 0,
+      "exact_time_s": 231.39,
+      "exact_peak_mb": 178.7,
+      "exact_feasible": true,
+      "heur_ms": 74.0,
+      "heur_feasible": true,
+      "same_sequence": true,
+      "gap_pct": 0.0
+    },
+    {
+      "n": 18,
+      "seed": 1,
+      "exact_time_s": 215.1,
+      "exact_peak_mb": 178.7,
+      "exact_feasible": true,
+      "heur_ms": 37.4,
+      "heur_feasible": true,
+      "same_sequence": false,
+      "gap_pct": 0.2
+    }
+  ]
+}

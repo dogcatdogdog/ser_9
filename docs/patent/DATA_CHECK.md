@@ -74,7 +74,9 @@
 ## F. W9 重构新增数字（自适应分级求解）
 
 > 来源：`docs/exploration/STEP2_THRESHOLD.md`、`STEP1_PERF.md`、`results/gap_rebaseline.json`、
-> `docs/exploration/step1_perf_data.json`（均在 `tw-feasibility` 探索分支，已由 W9 移植回主干）。
+> `docs/exploration/step1_perf_data.json`。前三者已由探索分支 `worktree-tw-feasibility`
+> 归档入主干 `docs/exploration/`（见该目录 `README.md`）；`step1_perf_clean.json` 的
+> 权威副本为 `results/step1_perf_clean.json`（W9 移植时重跑）。
 > 数字须与 `a3_python/exact_battery.py`、`a3_python/adaptive.py` 的实现口径一致。
 
 | 正文位置 | 数字 | 出处 | 核对 |

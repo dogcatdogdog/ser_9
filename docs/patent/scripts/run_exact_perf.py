@@ -13,11 +13,12 @@
       同时给出"剪枝增量" (UB 由调用方提供, 见 run_exact_perf._initial_upper_bound);
     * 默认模式: 计时 + tracemalloc 峰值内存 (内存单独采信, 时间仅作参考)。
 
-复现:
-  python -X utf8 a3_python/tw/run_exact_perf.py            # 全量 (含 tracemalloc 内存)
-  python -X utf8 a3_python/tw/run_exact_perf.py --clean    # 纯净计时 (可信加速比)
-  python -X utf8 a3_python/tw/run_exact_perf.py --quick    # 冒烟
+复现 (W9 由探索分支 a3_python/tw/ 移植到本目录):
+  python -X utf8 docs/patent/scripts/run_exact_perf.py          # 全量 (含 tracemalloc 内存)
+  python -X utf8 docs/patent/scripts/run_exact_perf.py --clean  # 纯净计时 (可信加速比)
+  python -X utf8 docs/patent/scripts/run_exact_perf.py --quick  # 冒烟
 输出: results/step1_perf_{data,clean}.json + 终端 markdown 表
+过程记录: docs/exploration/STEP1_PERF.md
 """
 from __future__ import annotations
 
